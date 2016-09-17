@@ -1,0 +1,4 @@
+SANITY_VERSION 1
+TMPDIR /home/raph/zynq-tango/ztango/tmp-glibc
+SSTATE_DIR /home/raph/zynq-tango/ztango/sstate-cache/
+NATIVELSBSTRING Ubuntu-16.04

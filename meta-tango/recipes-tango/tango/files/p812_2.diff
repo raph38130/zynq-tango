@@ -1,0 +1,129 @@
+diff -Naur '--exclude=.svn' tango_812c/lib/cpp/client/api_util.cpp tango_812c.p2/lib/cpp/client/api_util.cpp
+--- tango_812c/lib/cpp/client/api_util.cpp	2013-08-22 13:47:40.982716214 +0200
++++ tango_812c.p2/lib/cpp/client/api_util.cpp	2013-11-25 08:50:35.235566181 +0100
+@@ -257,6 +257,10 @@
+ 
+ 	if (sigaction(SIGPIPE,NULL,&sa) == -1)
+ 		sa.sa_handler = NULL;
++#else
++	WORD rel = 0x0202;
++	WSADATA dat;
++	WSAStartup(rel,&dat);
+ #endif
+ 
+ //
+diff -Naur '--exclude=.svn' tango_812c/lib/cpp/client/eventconsumer.h tango_812c.p2/lib/cpp/client/eventconsumer.h
+--- tango_812c/lib/cpp/client/eventconsumer.h	2013-08-22 13:47:40.974716170 +0200
++++ tango_812c.p2/lib/cpp/client/eventconsumer.h	2013-11-22 16:37:06.631915702 +0100
+@@ -298,6 +298,7 @@
+     DevLong                         device_idl;
+     DevULong                        ctr;
+     string							endpoint;
++	bool							discarded_event;
+ }EventCallBackZmq;
+ 
+ typedef struct event_callback: public EventCallBackBase, public EventCallBackZmq
+diff -Naur '--exclude=.svn' tango_812c/lib/cpp/client/event.cpp tango_812c.p2/lib/cpp/client/event.cpp
+--- tango_812c/lib/cpp/client/event.cpp	2013-08-22 13:47:40.994716280 +0200
++++ tango_812c.p2/lib/cpp/client/event.cpp	2013-11-22 16:36:33.607737209 +0100
+@@ -202,12 +202,12 @@
+                         {
+                             break;
+                         }
++					}
+ 
+-                        if (j == env_var_fqdn_prefix.size())
+-                        {
+-                            string prefix = "tango://" + vs[i] + '/';
+-                            env_var_fqdn_prefix.push_back(prefix);
+-                        }
++                    if (j == env_var_fqdn_prefix.size())
++                    {
++                        string prefix = "tango://" + vs[i] + '/';
++                        env_var_fqdn_prefix.push_back(prefix);
+                     }
+ #endif
+                 }
+@@ -1441,6 +1441,7 @@
+             new_event_callback.device_idl = 0;
+     }
+     new_event_callback.ctr = 0;
++	new_event_callback.discarded_event = false;
+     if (zmq_used == true)
+ 		new_event_callback.endpoint = dvlsa->svalue[1].in();
+ 
+diff -Naur '--exclude=.svn' tango_812c/lib/cpp/client/eventkeepalive.cpp tango_812c.p2/lib/cpp/client/eventkeepalive.cpp
+--- tango_812c/lib/cpp/client/eventkeepalive.cpp	2013-08-22 13:47:40.998716302 +0200
++++ tango_812c.p2/lib/cpp/client/eventkeepalive.cpp	2013-11-22 16:37:21.255994623 +0100
+@@ -452,6 +452,10 @@
+ 
+ 						event_consumer->connect_event_system(d_name,epos->second.attr_name,epos->second.event_name,vs,ipos,ecbs,dd);
+ 
++						const DevVarLongStringArray *dvlsa;
++						dd >> dvlsa;
++						epos->second.endpoint = dvlsa->svalue[1].in();
++
+ 						cout3 << "Reconnected to ZMQ event" << endl;
+ 					}
+ 					catch(...)
+@@ -588,6 +592,11 @@
+ 					    {
+                             try
+                             {
++								if (notifd_event_consumer == NULL)
++								{
++									ApiUtil::instance()->create_notifd_event_consumer();
++									notifd_event_consumer = ApiUtil::instance()->get_notifd_event_consumer();
++								}
+                                 notifd_event_consumer->connect_event(vpos->device,vpos->attribute,vpos->event_type,
+ 																					vpos->callback,
+ 																					vpos->ev_queue,
+diff -Naur '--exclude=.svn' tango_812c/lib/cpp/client/zmqeventconsumer.cpp tango_812c.p2/lib/cpp/client/zmqeventconsumer.cpp
+--- tango_812c/lib/cpp/client/zmqeventconsumer.cpp	2013-08-22 13:47:40.994716280 +0200
++++ tango_812c.p2/lib/cpp/client/zmqeventconsumer.cpp	2013-11-22 16:36:52.615839937 +0100
+@@ -859,6 +859,7 @@
+                 event_sub_sock->setsockopt(ZMQ_RCVHWM,&sub_hwm,sizeof(sub_hwm));
+ 
+                 event_sub_sock->connect(endpoint);
++
+                 if (force_connect == 0)
+                     connected_pub.push_back(endpoint);
+             }
+@@ -935,9 +936,10 @@
+ 				vector<string>::iterator pos;
+ 				pos = find(connected_pub.begin(),connected_pub.end(),endpoint_str);
+ 				if (pos != connected_pub.end())
++				{
+ 					connected_pub.erase(pos);
+-
+-				event_sub_sock->disconnect(endpoint);
++					event_sub_sock->disconnect(endpoint);
++				}
+ #endif
+             }
+             else
+@@ -1930,12 +1932,21 @@
+ 			if (missed_event >= 2)
+             {
+                 err_missed_event = true;
++				evt_cb.discarded_event = false;
+             }
+             else if (missed_event == 0)
+             {
+-                map_modification_lock.readerOut();
+-                return;
+-            }
++				if (evt_cb.discarded_event == false)
++				{
++					evt_cb.discarded_event = true;
++					map_modification_lock.readerOut();
++					return;
++				}
++				else
++					evt_cb.discarded_event = false;
++			}
++			else
++				evt_cb.discarded_event = false;
+ 
+             evt_cb.ctr = ds_ctr;
+ 

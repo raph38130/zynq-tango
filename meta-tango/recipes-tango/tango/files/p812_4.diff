@@ -1,0 +1,190 @@
+diff -Naur '--exclude=.svn' tango-8.1.2-tmp/lib/cpp/client/eventconsumer.h tango-8.1.2-new/lib/cpp/client/eventconsumer.h
+--- tango-8.1.2-tmp/lib/cpp/client/eventconsumer.h	2014-04-08 12:49:28.478616281 +0200
++++ tango-8.1.2-new/lib/cpp/client/eventconsumer.h	2014-04-08 12:52:10.303446938 +0200
+@@ -414,7 +414,7 @@
+ 	void get_fire_sync_event(DeviceProxy *,CallBack *,EventQueue *,EventType,string &,const string &,EventCallBackStruct &);
+ 
+ 	virtual void connect_event_channel(string &,Database *,bool,DeviceData &) = 0;
+-    virtual void disconnect_event_channel(TANGO_UNUSED(string &channel_name),TANGO_UNUSED(string &endpoint)) {}
++    virtual void disconnect_event_channel(TANGO_UNUSED(string &channel_name),TANGO_UNUSED(string &endpoint),TANGO_UNUSED(string &endpoint_event)) {}
+     virtual void connect_event_system(string &,string &,string &e,const vector<string> &,EvChanIte &,EventCallBackStruct &,DeviceData &) = 0;
+     virtual void disconnect_event(string &,string &) {}
+ 
+@@ -502,7 +502,7 @@
+ protected :
+ 	ZmqEventConsumer(ApiUtil *ptr);
+ 	virtual void connect_event_channel(string &,Database *,bool,DeviceData &);
+-    virtual void disconnect_event_channel(string &channel_name,string &endpoint);
++    virtual void disconnect_event_channel(string &channel_name,string &endpoint,string &endpoint_event);
+     virtual void connect_event_system(string &,string &,string &e,const vector<string> &,EvChanIte &,EventCallBackStruct &,DeviceData &);
+     virtual void disconnect_event(string &,string &);
+ 
+@@ -530,6 +530,7 @@
+ 
+     int                                     old_poll_nb;
+     omni_mutex								subscription_mutex;
++	bool									ctrl_socket_bound;
+ 
+ 	void *run_undetached(void *arg);
+ 	void push_heartbeat_event(string &);
+@@ -540,6 +541,8 @@
+     void process_event(zmq_msg_t &,zmq_msg_t &,zmq_msg_t &,zmq_msg_t &);
+     void multi_tango_host(zmq::socket_t *,SocketCmd,string &);
+ 	void print_error_message(const char *mess) {ApiUtil *au=ApiUtil::instance();au->print_error_message(mess);}
++	void set_ctrl_sock_bound() {subscription_mutex.lock();ctrl_socket_bound=true;subscription_mutex.unlock();}
++	bool is_ctrl_sock_bound() {bool _b;subscription_mutex.lock();_b=ctrl_socket_bound;subscription_mutex.unlock();return _b;}
+ 
+     friend class DelayEvent;
+ };
+diff -Naur '--exclude=.svn' tango-8.1.2-tmp/lib/cpp/client/event.cpp tango-8.1.2-new/lib/cpp/client/event.cpp
+--- tango-8.1.2-tmp/lib/cpp/client/event.cpp	2014-04-08 12:49:28.482616305 +0200
++++ tango-8.1.2-new/lib/cpp/client/event.cpp	2014-04-08 12:50:45.595012142 +0200
+@@ -1631,6 +1631,7 @@
+ 					delete epos->second.callback_monitor;
+ 
+ 					string deleted_channel_name = epos->second.channel_name;
++					string deleted_event_endpoint = evt_cb.endpoint;
+ 					event_callback_map.erase(epos);
+ 
+ //
+@@ -1689,7 +1690,7 @@
+ 								    }
+ 								    else
+ 								    {
+-                                        disconnect_event_channel(deleted_channel_name,evt_ch.endpoint);
++                                        disconnect_event_channel(deleted_channel_name,evt_ch.endpoint,deleted_event_endpoint);
+ 								    }
+ 
+ 									delete evt_ch.adm_device_proxy;
+diff -Naur '--exclude=.svn' tango-8.1.2-tmp/lib/cpp/client/eventkeepalive.cpp tango-8.1.2-new/lib/cpp/client/eventkeepalive.cpp
+--- tango-8.1.2-tmp/lib/cpp/client/eventkeepalive.cpp	2014-04-08 12:49:28.482616305 +0200
++++ tango-8.1.2-new/lib/cpp/client/eventkeepalive.cpp	2014-04-08 12:50:45.595012142 +0200
+@@ -190,7 +190,7 @@
+ 					string adm_name = ipos->second.full_adm_name;
+ 
+ #ifdef ZMQ_HAS_DISCONNECT
+-					event_consumer->disconnect_event_channel(adm_name,ipos->second.endpoint);
++					event_consumer->disconnect_event_channel(adm_name,ipos->second.endpoint,epos->second.endpoint);
+ #endif
+ 					event_consumer->connect_event_channel(adm_name,
+ 									      epos->second.device->get_device_db(),
+diff -Naur '--exclude=.svn' tango-8.1.2-tmp/lib/cpp/client/zmqeventconsumer.cpp tango-8.1.2-new/lib/cpp/client/zmqeventconsumer.cpp
+--- tango-8.1.2-tmp/lib/cpp/client/zmqeventconsumer.cpp	2014-04-08 12:49:32.238635656 +0200
++++ tango-8.1.2-new/lib/cpp/client/zmqeventconsumer.cpp	2014-04-08 12:55:10.640372609 +0200
+@@ -65,7 +65,8 @@
+ /*		       															*/
+ /************************************************************************/
+ 
+-ZmqEventConsumer::ZmqEventConsumer(ApiUtil *ptr) : EventConsumer(ptr),omni_thread((void *)ptr),zmq_context(1)
++ZmqEventConsumer::ZmqEventConsumer(ApiUtil *ptr) : EventConsumer(ptr),
++omni_thread((void *)ptr),zmq_context(1),ctrl_socket_bound(false)
+ {
+ 	cout3 << "calling Tango::ZmqEventConsumer::ZmqEventConsumer() \n";
+ 
+@@ -161,6 +162,8 @@
+ 	control_sock->setsockopt(ZMQ_LINGER,&linger,sizeof(linger));
+ 	control_sock->bind(CTRL_SOCK_ENDPOINT);
+ 
++	set_ctrl_sock_bound();
++
+ //
+ // Initialize poll set
+ //
+@@ -784,6 +787,7 @@
+             const char *event_name = &(tmp_ptr[1]);
+ #ifdef ZMQ_HAS_DISCONNECT
+             const char *endpoint = &(tmp_ptr[1 + ::strlen(event_name) + 1]);
++            const char *endpoint_event = &(tmp_ptr[1 + ::strlen(event_name) + ::strlen(endpoint) + 2]);
+ #endif
+ 
+ //
+@@ -815,6 +819,17 @@
+ 				connected_heartbeat.erase(pos);
+ 
+ 			heartbeat_sub_sock->disconnect(endpoint);
++
++//
++// Remove the event endpoint from the already connected event and disconnect the event socket
++//
++
++			pos = find(connected_pub.begin(),connected_pub.end(),string(endpoint_event));
++			if (pos != connected_pub.end())
++			{
++				connected_pub.erase(pos);
++				event_sub_sock->disconnect(endpoint_event);
++			}
+ #endif
+         }
+         break;
+@@ -927,20 +942,6 @@
+                     string base_name(event_name);
+                     multi_tango_host(event_sub_sock,UNSUBSCRIBE,base_name);
+                 }
+-
+-#ifdef ZMQ_HAS_DISCONNECT
+-//
+-// Remove the endpoint in the vector of already connected event and disconnect the socket to this endpoint
+-//
+-
+-				vector<string>::iterator pos;
+-				pos = find(connected_pub.begin(),connected_pub.end(),endpoint_str);
+-				if (pos != connected_pub.end())
+-				{
+-					connected_pub.erase(pos);
+-					event_sub_sock->disconnect(endpoint);
+-				}
+-#endif
+             }
+             else
+             {
+@@ -1384,10 +1385,11 @@
+ //		in :
+ //			- channel name : The event channel name (DS admin name)
+ //			- endpoint : The ZMQ endpoint for the heartbeat publisher socket
++//			- endpoint_event : The ZMQ endpoint for the event publisher socket
+ //
+ //--------------------------------------------------------------------------------------------------------------------
+ 
+-void ZmqEventConsumer::disconnect_event_channel(string &channel_name,string &endpoint)
++void ZmqEventConsumer::disconnect_event_channel(string &channel_name,string &endpoint,string &endpoint_event)
+ {
+     string unsub(channel_name);
+     unsub = unsub + '.' + HEARTBEAT_EVENT_NAME;
+@@ -1420,6 +1422,9 @@
+         ::strcpy(&(buffer[length]),endpoint.c_str());
+         length = length + endpoint.size() + 1;
+ 
++		::strcpy(&(buffer[length]),endpoint_event.c_str());
++		length = length + endpoint_event.size() + 1;
++
+ //
+ // Send command to main ZMQ thread
+ //
+@@ -2838,10 +2843,27 @@
+ // I have tried with a yield call but it still failed in some cases (when running the DS with a file as database  for
+ // instance). Replace the yield with a 15 mS sleep !!!
+ //
++// Since ZMQ 4, it's possible to connect to the remote socket even if it is not yet bound but the remote
++// socket will hang in its recv call!!!!
++// We still need the sleep call but not in the exception case 
++//
+ 
+             try
+             {
+                 sender.connect(CTRL_SOCK_ENDPOINT);
++
++				if (eve_con->is_ctrl_sock_bound() == false)
++				{
++#ifndef _TG_WINDOWS_
++					struct timespec ts;
++					ts.tv_sec = 0;
++					ts.tv_nsec = 15000000;
++
++					nanosleep(&ts,NULL);
++#else
++					Sleep(20);
++#endif
++				}
+             }
+             catch (zmq::error_t &e)
+             {

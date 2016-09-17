@@ -1,0 +1,1074 @@
+Index: lib/cpp/server/device_3.cpp
+===================================================================
+--- tango_922/lib/cpp/server/device_3.cpp	(revision 29537)
++++ tango_922/lib/cpp/server/device_3.cpp	(revision 29627)
+@@ -551,6 +551,12 @@
+ 																"Device_3::read_attributes_no_except");
+ 					}
+ 
++//
++// Check alarm
++//
++
++                    if ((att.is_alarmed().any() == true) && (att.get_quality() != Tango::ATTR_INVALID))
++                        att.check_alarm();
+ 				}
+ 				catch (Tango::DevFailed &e)
+ 				{
+@@ -897,13 +903,6 @@
+ 							{
+ 								if ((w_type == Tango::READ_WRITE) || (w_type == Tango::READ_WITH_WRITE))
+ 									dev_attr->add_write_value(att);
+-
+-//
+-// Check attribute alarm
+-//
+-
+-								if ((att.is_alarmed().any() == true) && (qual != Tango::ATTR_INVALID))
+-									att.check_alarm();
+ 							}
+ 
+ //
+Index: lib/cpp/server/pollobj.cpp
+===================================================================
+--- tango_922/lib/cpp/server/pollobj.cpp	(revision 29537)
++++ tango_922/lib/cpp/server/pollobj.cpp	(revision 29627)
+@@ -126,7 +126,7 @@
+ 
+ void PollObj::insert_data(CORBA::Any *res,struct timeval &when,struct timeval &needed)
+ {
+-	omni_mutex_lock(*this);
++	omni_mutex_lock sync(*this);
+ 
+ 	ring.insert_data(res,when);
+ 	needed_time = needed;
+@@ -134,7 +134,7 @@
+ 
+ void PollObj::insert_data(Tango::AttributeValueList *res,struct timeval &when,struct timeval &needed)
+ {
+-	omni_mutex_lock(*this);
++	omni_mutex_lock sync(*this);
+ 
+ 	ring.insert_data(res,when);
+ 	needed_time = needed;
+@@ -142,7 +142,7 @@
+ 
+ void PollObj::insert_data(Tango::AttributeValueList_3 *res,struct timeval &when,struct timeval &needed)
+ {
+-	omni_mutex_lock(*this);
++	omni_mutex_lock sync(*this);
+ 
+ 	ring.insert_data(res,when);
+ 	needed_time = needed;
+@@ -150,7 +150,7 @@
+ 
+ void PollObj::insert_data(Tango::AttributeValueList_4 *res,struct timeval &when,struct timeval &needed)
+ {
+-	omni_mutex_lock(*this);
++	omni_mutex_lock sync(*this);
+ 
+ 	ring.insert_data(res,when,true);
+ 	needed_time = needed;
+@@ -158,7 +158,7 @@
+ 
+ void PollObj::insert_data(Tango::AttributeValueList_5 *res,struct timeval &when,struct timeval &needed)
+ {
+-	omni_mutex_lock(*this);
++	omni_mutex_lock sync(*this);
+ 
+ 	ring.insert_data(res,when,true);
+ 	needed_time = needed;
+@@ -184,7 +184,7 @@
+ 			    struct timeval &when,
+ 			    struct timeval &needed)
+ {
+-	omni_mutex_lock(*this);
++	omni_mutex_lock sync(*this);
+ 
+ 	ring.insert_except(res,when);
+ 	needed_time = needed;
+@@ -221,7 +221,7 @@
+ 
+ CORBA::Any *PollObj::get_last_cmd_result()
+ {
+-	omni_mutex_lock(*this);
++	omni_mutex_lock sync(*this);
+ 
+ 	return ring.get_last_cmd_result();
+ }
+@@ -240,7 +240,7 @@
+ Tango::AttributeValue &PollObj::get_last_attr_value(bool lock)
+ {
+ 	if (lock == true)
+-		omni_mutex_lock(*this);
++		omni_mutex_lock sync(*this);
+ 
+ 	return ring.get_last_attr_value();
+ }
+@@ -248,7 +248,7 @@
+ Tango::AttributeValue_3 &PollObj::get_last_attr_value_3(bool lock)
+ {
+ 	if (lock == true)
+-		omni_mutex_lock(*this);
++		omni_mutex_lock sync(*this);
+ 
+ 	return ring.get_last_attr_value_3();
+ }
+@@ -256,7 +256,7 @@
+ Tango::AttributeValue_4 &PollObj::get_last_attr_value_4(bool lock)
+ {
+ 	if (lock == true)
+-		omni_mutex_lock(*this);
++		omni_mutex_lock sync(*this);
+ 
+ 	return ring.get_last_attr_value_4();
+ }
+@@ -264,7 +264,7 @@
+ Tango::AttributeValue_5 &PollObj::get_last_attr_value_5(bool lock)
+ {
+ 	if (lock == true)
+-		omni_mutex_lock(*this);
++		omni_mutex_lock sync(*this);
+ 
+ 	return ring.get_last_attr_value_5();
+ }
+@@ -315,7 +315,7 @@
+ 
+ void PollObj::get_cmd_history(long n,Tango::DevCmdHistoryList *ptr)
+ {
+-	omni_mutex_lock(*this);
++	omni_mutex_lock sync(*this);
+ 
+ 	ring.get_cmd_history(n,ptr);
+ }
+@@ -322,7 +322,7 @@
+ 
+ void PollObj::get_cmd_history(long n,Tango::DevCmdHistory_4 *ptr,Tango::CmdArgType &loc_type)
+ {
+-	omni_mutex_lock(*this);
++	omni_mutex_lock sync(*this);
+ 
+ 	ring.get_cmd_history(n,ptr,loc_type);
+ }
+@@ -345,7 +345,7 @@
+ 
+ void PollObj::get_attr_history(long n,Tango::DevAttrHistoryList *ptr,long attr_type)
+ {
+-	omni_mutex_lock(*this);
++	omni_mutex_lock sync(*this);
+ 
+ 	ring.get_attr_history(n,ptr,attr_type);
+ }
+@@ -352,7 +352,7 @@
+ 
+ void PollObj::get_attr_history(long n,Tango::DevAttrHistoryList_3 *ptr,long attr_type)
+ {
+-	omni_mutex_lock(*this);
++	omni_mutex_lock sync(*this);
+ 
+ 	ring.get_attr_history(n,ptr,attr_type);
+ 
+@@ -372,7 +372,7 @@
+ 
+ void PollObj::get_attr_history(long n,Tango::DevAttrHistory_4 *ptr,long attr_type,TANGO_UNUSED(AttrDataFormat attr_format))
+ {
+-	omni_mutex_lock(*this);
++	omni_mutex_lock sync(*this);
+ 
+ 	ring.get_attr_history(n,ptr,attr_type);
+ }
+@@ -379,7 +379,7 @@
+ 
+ void PollObj::get_attr_history(long n,Tango::DevAttrHistory_5 *ptr,long attr_type,AttrDataFormat attr_format)
+ {
+-	omni_mutex_lock(*this);
++	omni_mutex_lock sync(*this);
+ 
+ 	ring.get_attr_history(n,ptr,attr_type);
+ 	ptr->data_format = attr_format;
+@@ -388,7 +388,7 @@
+ 
+ void PollObj::get_attr_history_43(long n,Tango::DevAttrHistoryList_3 *ptr,long attr_type)
+ {
+-	omni_mutex_lock(*this);
++	omni_mutex_lock sync(*this);
+ 
+ 	ring.get_attr_history_43(n,ptr,attr_type);
+ }
+Index: lib/cpp/server/except.h
+===================================================================
+--- tango_922/lib/cpp/server/except.h	(revision 29537)
++++ tango_922/lib/cpp/server/except.h	(revision 29627)
+@@ -1865,6 +1865,7 @@
+ /// @privatesection
+ 
+ 	static char *print_CORBA_SystemException(const CORBA::SystemException *);
++	static char *print_CORBA_SystemException_r(const CORBA::SystemException *, char * err_msg); // reentrant version
+ 	static omni_mutex the_mutex;
+ 
+ protected:
+Index: lib/cpp/server/pollobj.h
+===================================================================
+--- tango_922/lib/cpp/server/pollobj.h	(revision 29537)
++++ tango_922/lib/cpp/server/pollobj.h	(revision 29627)
+@@ -83,40 +83,40 @@
+ 	Tango::AttributeValue_4 &get_last_attr_value_4(bool);
+ 	Tango::AttributeValue_5 &get_last_attr_value_5(bool);
+ 
+-	bool is_ring_empty() {omni_mutex_lock(*this);return is_ring_empty_i();}
++	bool is_ring_empty() {omni_mutex_lock sync(*this);return is_ring_empty_i();}
+ 	bool is_ring_empty_i() {return ring.is_empty();}
+ 
+-	long get_upd() {omni_mutex_lock(*this);return get_upd_i();}
++	long get_upd() {omni_mutex_lock sync(*this);return get_upd_i();}
+ 	long get_upd_i() {return ((upd.tv_sec * 1000) + (upd.tv_usec / 1000));}
+ 
+-	string &get_name() {omni_mutex_lock(*this);return get_name_i();}
++	string &get_name() {omni_mutex_lock sync(*this);return get_name_i();}
+ 	string &get_name_i() {return name;}
+ 
+-	inline double get_needed_time() {omni_mutex_lock(*this);return get_needed_time_i();}
++	inline double get_needed_time() {omni_mutex_lock sync(*this);return get_needed_time_i();}
+ 	inline double get_needed_time_i()
+ 	{
+ 		return ((needed_time.tv_sec * 1000) + (needed_time.tv_usec / 1000.0));
+ 	}
+ 
+-	inline PollObjType get_type() {omni_mutex_lock(*this);return get_type_i();}
++	inline PollObjType get_type() {omni_mutex_lock sync(*this);return get_type_i();}
+ 	inline PollObjType get_type_i() {return type;}
+ 
+-	double get_last_insert_date() {omni_mutex_lock(*this);return get_last_insert_date_i();}
++	double get_last_insert_date() {omni_mutex_lock sync(*this);return get_last_insert_date_i();}
+ 	double get_last_insert_date_i();
+ 
+-	bool is_last_an_error() {omni_mutex_lock(*this);return is_last_an_error_i();}
++	bool is_last_an_error() {omni_mutex_lock sync(*this);return is_last_an_error_i();}
+ 	bool is_last_an_error_i() {return ring.is_last_an_error();}
+ 	bool is_last_an_error_i_3()
+ 	{if (type==POLL_CMD)return ring.is_last_cmd_an_error();else return ring.is_last_attr_an_error();}
+ 
+-	Tango::DevFailed *get_last_except() {omni_mutex_lock(*this);return get_last_except_i();}
++	Tango::DevFailed *get_last_except() {omni_mutex_lock sync(*this);return get_last_except_i();}
+ 	Tango::DevFailed *get_last_except_i() {return ring.get_last_except();}
+ 	Tango::DevErrorList &get_last_attr_error_i() {return ring.get_last_attr_error();}
+ 
+-	void get_delta_t(vector<double> &vd, long nb) {omni_mutex_lock(*this);get_delta_t_i(vd,nb);}
++	void get_delta_t(vector<double> &vd, long nb) {omni_mutex_lock sync(*this);get_delta_t_i(vd,nb);}
+ 	void get_delta_t_i(vector<double> &vd,long nb) {ring.get_delta_t(vd,nb);}
+ 
+-	long get_elt_nb_in_buffer() {omni_mutex_lock(*this);return get_elt_nb_in_buffer_i();}
++	long get_elt_nb_in_buffer() {omni_mutex_lock sync(*this);return get_elt_nb_in_buffer_i();}
+ 	long get_elt_nb_in_buffer_i() {return ring.get_nb_elt();}
+ 
+ 	void get_cmd_history(long,Tango::DevCmdHistoryList *);
+Index: lib/cpp/server/except.cpp
+===================================================================
+--- tango_922/lib/cpp/server/except.cpp	(revision 29537)
++++ tango_922/lib/cpp/server/except.cpp	(revision 29627)
+@@ -69,7 +69,9 @@
+ 
+ 	if ((se = dynamic_cast<const CORBA::SystemException *>(&e)) != NULL)
+ 	{
++		Tango::Except::the_mutex.lock();
+ 		cerr << print_CORBA_SystemException(se) << endl;
++		Tango::Except::the_mutex.unlock();
+ 	}
+ 
+ //
+@@ -449,6 +451,250 @@
+ 
+ //+----------------------------------------------------------------------------
+ //
++// method : 		print_CORBA_SystemException_r
++//
++// description : 	This method prints the information embedded in
++//			a CORBA system exception. This is the reentrant version of 
++//          print_CORBA_SystemException method
++//
++// in :			e           : Pointer to the exception object
++//              error_msg   : Pointer to an already allocated char * buffer
++//              buffer_size : Size of error_msg buffer 
++//
++//-----------------------------------------------------------------------------
++
++char *Except::print_CORBA_SystemException_r(const CORBA::SystemException *e,
++                                          char * error_msg)
++{
++	const CORBA::BAD_PARAM *bad;
++	const CORBA::NO_MEMORY *mem;
++	const CORBA::IMP_LIMIT *lim;
++	const CORBA::COMM_FAILURE *comm;
++	const CORBA::INV_OBJREF *inv;
++	const CORBA::NO_PERMISSION *perm;
++	const CORBA::INTERNAL *inter;
++	const CORBA::MARSHAL *mar;
++	const CORBA::INITIALIZE *ini;
++	const CORBA::NO_IMPLEMENT *impl;
++	const CORBA::BAD_TYPECODE *type;
++	const CORBA::BAD_OPERATION *op;
++	const CORBA::NO_RESOURCES *res;
++	const CORBA::NO_RESPONSE *resp;
++	const CORBA::BAD_INV_ORDER *inv_ord;
++	const CORBA::TRANSIENT *tra;
++	const CORBA::OBJ_ADAPTER *adap;
++	const CORBA::OBJECT_NOT_EXIST *not_ex;
++	const CORBA::INV_POLICY *pol;
++
++//
++// It seems that omniORB for Win32 is not compiled with the RTTI enabled
++// (/GR option). We can't use dynamic_casting here.
++// We are using CORBA _downcast() method !!!
++//
++
++	if (CORBA::UNKNOWN::_downcast(e) != 0)
++	{
++		::strcpy(error_msg,"UNKNOWN CORBA system exception");
++	}
++	else if ((bad = CORBA::BAD_PARAM::_downcast(e)) != 0)
++	{
++		::strcpy(error_msg,"BAD_PARAM CORBA system exception: ");
++		const char *err_msg = bad->NP_minorString();
++		if ( err_msg == NULL )
++			::strcat(error_msg,"ORB has returned NULL pointer !");
++		else
++			::strcat(error_msg,err_msg);
++	}
++	else if ((mem = CORBA::NO_MEMORY::_downcast(e)) != 0)
++	{
++		::strcpy(error_msg,"NO_MEMORY CORBA system exception: ");
++		const char *err_msg = mem->NP_minorString();
++		if ( err_msg == NULL )
++			::strcat(error_msg,"ORB has returned NULL pointer !");
++		else
++			::strcat(error_msg,err_msg);
++	}
++	else if ((lim = CORBA::IMP_LIMIT::_downcast(e)) != 0)
++	{
++		::strcpy(error_msg,"IMP_LIMIT CORBA system exception: ");
++		const char *tmp = lim->NP_minorString();
++		if (tmp == NULL)
++		{
++			::strcat(error_msg,"Unknown minor code: ");
++			TangoSys_MemStream st;
++			st << hex << lim->minor() << dec << ends;
++			string s = st.str();
++			::strcat(error_msg,s.c_str());
++		}
++		else
++			::strcat(error_msg,tmp);
++	}
++	else if ((comm = CORBA::COMM_FAILURE::_downcast(e)) != NULL)
++	{
++		::strcpy(error_msg,"COMM_FAILURE CORBA system exception: ");
++		const char *tmp = comm->NP_minorString();
++		if (tmp == NULL)
++		{
++			::strcat(error_msg,"Unknown minor code: ");
++			TangoSys_MemStream st;
++			st << hex << comm->minor() << dec << ends;
++
++			string s = st.str();
++			::strcat(error_msg,s.c_str());
++		}
++		else
++			::strcat(error_msg,tmp);
++	}
++	else if ((inv = CORBA::INV_OBJREF::_downcast(e)) != NULL)
++	{
++		::strcpy(error_msg,"INV_OBJREF CORBA system exception: ");
++		const char *err_msg = inv->NP_minorString();
++		if ( err_msg == NULL )
++			::strcat(error_msg,"ORB has returned NULL pointer !");
++		else
++			::strcat(error_msg,err_msg);
++	}
++	else if ((perm = CORBA::NO_PERMISSION::_downcast(e)) != NULL)
++	{
++		::strcpy(error_msg,"NO_PERMISSION CORBA system exception: ");
++		const char *err_msg = perm->NP_minorString();
++		if ( err_msg == NULL )
++			::strcat(error_msg,"ORB has returned NULL pointer !");
++		else
++			::strcat(error_msg,err_msg);
++	}
++	else if ((inter = CORBA::INTERNAL::_downcast(e)) != NULL)
++	{
++		::strcpy(error_msg,"INTERNAL CORBA system exception: ");
++		const char *err_msg = inter->NP_minorString();
++		if ( err_msg == NULL )
++			::strcat(error_msg,"ORB has returned NULL pointer !");
++		else
++			::strcat(error_msg,err_msg);
++	}
++	else if ((mar = CORBA::MARSHAL::_downcast(e)) != NULL)
++	{
++		::strcpy(error_msg,"MARSHAL CORBA system exception: ");
++		const char *err_msg = mar->NP_minorString();
++		if ( err_msg == NULL )
++			::strcat(error_msg,"ORB has returned NULL pointer !");
++		else
++			::strcat(error_msg,err_msg);
++	}
++	else if ((ini = CORBA::INITIALIZE::_downcast(e)) != NULL)
++	{
++		::strcpy(error_msg,"INITIALIZE CORBA system exception: ");
++		const char *err_msg = ini->NP_minorString();
++		if ( err_msg == NULL )
++			::strcat(error_msg,"ORB has returned NULL pointer !");
++		else
++			::strcat(error_msg,err_msg);
++	}
++	else if ((impl = CORBA::NO_IMPLEMENT::_downcast(e)) != NULL)
++	{
++		::strcpy(error_msg,"NO_IMPLEMENT CORBA system exception: ");
++		const char *err_msg = impl->NP_minorString();
++		if ( err_msg == NULL )
++			::strcat(error_msg,"ORB has returned NULL pointer !");
++		else
++			::strcat(error_msg,err_msg);
++	}
++	else if ((type = CORBA::BAD_TYPECODE::_downcast(e)) != NULL)
++	{
++		::strcpy(error_msg,"BAD_TYPECODE CORBA system exception: ");
++		const char *err_msg = type->NP_minorString();
++		if ( err_msg == NULL )
++			::strcat(error_msg,"ORB has returned NULL pointer !");
++		else
++			::strcat(error_msg,err_msg);
++	}
++	else if ((op = CORBA::BAD_OPERATION::_downcast(e)) != NULL)
++	{
++		::strcpy(error_msg,"BAD_OPERATION CORBA system exception: ");
++		const char *err_msg = op->NP_minorString();
++		if ( err_msg == NULL )
++			::strcat(error_msg,"ORB has returned NULL pointer !");
++		else
++			::strcat(error_msg,err_msg);
++	}
++	else if ((res = CORBA::NO_RESOURCES::_downcast(e)) != NULL)
++	{
++		::strcpy(error_msg,"NO_RESOURCES CORBA system exception: ");
++		const char *err_msg = res->NP_minorString();
++		if ( err_msg == NULL )
++			::strcat(error_msg,"ORB has returned NULL pointer !");
++		else
++			::strcat(error_msg,err_msg);
++	}
++	else if ((resp = CORBA::NO_RESPONSE::_downcast(e)) != NULL)
++	{
++		::strcpy(error_msg,"NO_RESPONSE CORBA system exception: ");
++		const char *err_msg = resp->NP_minorString();
++		if ( err_msg == NULL )
++			::strcat(error_msg,"ORB has returned NULL pointer !");
++		else
++			::strcat(error_msg,err_msg);
++	}
++	else if ((inv_ord = CORBA::BAD_INV_ORDER::_downcast(e)) != NULL)
++	{
++		::strcpy(error_msg,"BAD_INV_ORDER CORBA system exception: ");
++		const char *err_msg = inv_ord->NP_minorString();
++		if ( err_msg == NULL )
++			::strcat(error_msg,"ORB has returned NULL pointer !");
++		else
++			::strcat(error_msg,err_msg);
++	}
++	else if ((tra = CORBA::TRANSIENT::_downcast(e)) != NULL)
++	{
++		::strcpy(error_msg,"TRANSIENT CORBA system exception: ");
++		const char *tmp = tra->NP_minorString();
++		if (tmp == NULL)
++		{
++			::strcat(error_msg,"Unknown minor code: ");
++			TangoSys_MemStream st;
++			st << hex << tra->minor() << dec << ends;
++
++			string s = st.str();
++			::strcat(error_msg,s.c_str());
++		}
++		else
++			::strcat(error_msg,tmp);
++	}
++	else if ((adap = CORBA::OBJ_ADAPTER::_downcast(e)) != NULL)
++	{
++		::strcpy(error_msg,"OBJ_ADAPTER CORBA system exception: ");
++		const char *err_msg = adap->NP_minorString();
++		if ( err_msg == NULL )
++			::strcat(error_msg,"ORB has returned NULL pointer !");
++		else
++			::strcat(error_msg,err_msg);
++	}
++	else if ((not_ex = CORBA::OBJECT_NOT_EXIST::_downcast(e)) != NULL)
++	{
++		::strcpy(error_msg,"OBJECT_NOT_EXIST CORBA system exception: ");
++		const char *err_msg = not_ex->NP_minorString();
++		if ( err_msg == NULL )
++			::strcat(error_msg,"ORB has returned NULL pointer !");
++		else
++			::strcat(error_msg,err_msg);
++	}
++	else if ((pol = CORBA::INV_POLICY::_downcast(e)) != NULL)
++	{
++		::strcpy(error_msg,"INV_POLICY CORBA system exception: ");
++		const char *err_msg = pol->NP_minorString();
++		if ( err_msg == NULL )
++			::strcat(error_msg,"ORB has returned NULL pointer !");
++		else
++			::strcat(error_msg,err_msg);
++	}
++	else
++		::strcpy(error_msg,"CORBA unknown system exception !!!!!!!!");
++
++	return error_msg;
++}
++
++//+----------------------------------------------------------------------------
++//
+ // method : 		print_error_stack
+ //
+ // description : 	This method prints the a Tango error stack
+@@ -496,13 +742,6 @@
+ //
+ // description : 	These methods throws a Tango DevFailed exception from
+ //			a CORBA system exception.
+-//			Note that there is no CORBA::string_dup memory
+-//			for the reason field because it it is returned by
+-//			the print_CORBA_SystemException which in turn is
+-//			using an OB method (_OB_defaultToString) which
+-//			internally used a CORBA::String_var and its method
+-//			_retn() to return the string. Therefore, its
+-//			memory is allocated using CORBA::string_alloc.
+ //
+ // in :			e : Pointer to the exception object
+ //
+@@ -516,7 +755,10 @@
+ 	errors[0].severity = Tango::ERR;
+ 	errors[0].origin = CORBA::string_dup(origin);
+ 	errors[0].reason = CORBA::string_dup(API_CorbaSysException);
+-	errors[0].desc = print_CORBA_SystemException(&c_ex);
++	Tango::Except::the_mutex.lock();
++	char *tmp = print_CORBA_SystemException(&c_ex);
++	errors[0].desc = CORBA::string_dup(tmp);
++	Tango::Except::the_mutex.unlock();
+ 
+ 	throw Tango::DevFailed(errors);
+ }
+@@ -530,7 +772,10 @@
+ 	errors[0].origin = CORBA::string_dup(origin);
+ 	delete [] origin;
+ 	errors[0].reason = CORBA::string_dup(API_CorbaSysException);
+-	errors[0].desc = print_CORBA_SystemException(&c_ex);
++	Tango::Except::the_mutex.lock();
++	char *tmp = print_CORBA_SystemException(&c_ex);
++	errors[0].desc = CORBA::string_dup(tmp);
++	Tango::Except::the_mutex.unlock();
+ 
+ 	throw Tango::DevFailed(errors);
+ }
+@@ -543,7 +788,10 @@
+ 	errors[0].severity = Tango::ERR;
+ 	errors[0].origin = CORBA::string_dup(origin.c_str());
+ 	errors[0].reason = CORBA::string_dup(API_CorbaSysException);
+-	errors[0].desc = print_CORBA_SystemException(&c_ex);
++	Tango::Except::the_mutex.lock();
++	char *tmp = print_CORBA_SystemException(&c_ex);
++	errors[0].desc = CORBA::string_dup(tmp);
++	Tango::Except::the_mutex.unlock();
+ 
+ 	throw Tango::DevFailed(errors);
+ }
+Index: lib/cpp/client/proxy_asyn.cpp
+===================================================================
+--- tango_922/lib/cpp/client/proxy_asyn.cpp	(revision 29537)
++++ tango_922/lib/cpp/client/proxy_asyn.cpp	(revision 29627)
+@@ -279,7 +279,8 @@
+     }
+     catch (CORBA::TRANSIENT &tra)
+     {
+-        char *cb_excep_mess = Tango::Except::print_CORBA_SystemException(&tra);
++        char cb_excep_mess[256];
++        Tango::Except::print_CORBA_SystemException_r(&tra,cb_excep_mess);
+         if (tra.minor() == omni::TRANSIENT_CallTimedout)
+         {
+             omni420_timeout(id,cb_excep_mess);
+@@ -293,7 +294,8 @@
+     catch(CORBA::SystemException &ex)
+     {
+         set_connection_state(CONNECTION_NOTOK);
+-        char *cb_excep_mess = Tango::Except::print_CORBA_SystemException(&ex);
++        char cb_excep_mess[256];
++        Tango::Except::print_CORBA_SystemException_r(&ex,cb_excep_mess);
+         return omni420_except(id,cb_excep_mess,req);
+     }
+ 
+@@ -348,7 +350,8 @@
+                     catch(...) {}
+                 }
+ 
+-                char *cb_excep_mess = Tango::Except::print_CORBA_SystemException(tra);
++                char cb_excep_mess[256];
++                Tango::Except::print_CORBA_SystemException_r(tra,cb_excep_mess);
+ 
+                 if (need_reconnect == false)
+                 {
+@@ -435,7 +438,8 @@
+ 			*(nv->value()) >>= cmd;
+ 			char *tmp = CORBA::string_dup(cmd);
+ 
+-			char *cb_excep_mess = Tango::Except::print_CORBA_SystemException(sys_ex);
++			char cb_excep_mess[256];
++			Tango::Except::print_CORBA_SystemException_r(sys_ex,cb_excep_mess);
+ 
+ //
+ // Check if the exception was a connection exception
+@@ -598,7 +602,8 @@
+     }
+     catch (CORBA::TRANSIENT &tra)
+     {
+-        char *cb_excep_mess = Tango::Except::print_CORBA_SystemException(&tra);
++        char cb_excep_mess[256];
++        Tango::Except::print_CORBA_SystemException_r(&tra,cb_excep_mess);
+         if (tra.minor() == omni::TRANSIENT_CallTimedout)
+         {
+             omni420_timeout(id,cb_excep_mess);
+@@ -612,7 +617,8 @@
+     catch(CORBA::SystemException &ex)
+     {
+         set_connection_state(CONNECTION_NOTOK);
+-        char *cb_excep_mess = Tango::Except::print_CORBA_SystemException(&ex);
++        char cb_excep_mess[256];
++        Tango::Except::print_CORBA_SystemException_r(&ex,cb_excep_mess);
+         return omni420_except(id,cb_excep_mess,req);
+     }
+ 
+@@ -667,7 +673,8 @@
+                     catch(...) {}
+                 }
+ 
+-                char *cb_excep_mess = Tango::Except::print_CORBA_SystemException(tra);
++                char cb_excep_mess[256];
++                Tango::Except::print_CORBA_SystemException_r(tra,cb_excep_mess);
+ 
+                 if (need_reconnect == false)
+                 {
+@@ -752,7 +759,8 @@
+ 			*(nv->value()) >>= cmd;
+ 			char *tmp = CORBA::string_dup(cmd);
+ 
+-			char *cb_excep_mess = Tango::Except::print_CORBA_SystemException(sys_ex);
++			char cb_excep_mess[256];
++			Tango::Except::print_CORBA_SystemException_r(sys_ex,cb_excep_mess);
+ 
+ //
+ // Check if the exception was a connection exception
+@@ -983,7 +991,8 @@
+ 		}
+         catch (CORBA::TRANSIENT &tra)
+         {
+-            char *cb_excep_mess = Tango::Except::print_CORBA_SystemException(&tra);
++            char cb_excep_mess[256];
++            Tango::Except::print_CORBA_SystemException_r(&tra,cb_excep_mess);
+             if (tra.minor() == omni::TRANSIENT_CallTimedout)
+             {
+                 omni420_timeout_attr(id,cb_excep_mess,MULTIPLE);
+@@ -1001,7 +1010,8 @@
+         catch(CORBA::SystemException &ex)
+         {
+             set_connection_state(CONNECTION_NOTOK);
+-            char *cb_excep_mess = Tango::Except::print_CORBA_SystemException(&ex);
++            char cb_excep_mess[256];
++            Tango::Except::print_CORBA_SystemException_r(&ex,cb_excep_mess);
+             omni420_except_attr(id,cb_excep_mess,MULTIPLE);
+ 
+             vector<DeviceAttribute> *a_ptr = redo_synch_reads_call(req);
+@@ -1186,7 +1196,8 @@
+ 		}
+         catch (CORBA::TRANSIENT &tra)
+         {
+-            char *cb_excep_mess = Tango::Except::print_CORBA_SystemException(&tra);
++            char cb_excep_mess[256];
++            Tango::Except::print_CORBA_SystemException_r(&tra,cb_excep_mess);
+             if (tra.minor() == omni::TRANSIENT_CallTimedout)
+             {
+                 omni420_timeout_attr(id,cb_excep_mess,SIMPLE);
+@@ -1204,7 +1215,8 @@
+         catch(CORBA::SystemException &ex)
+         {
+             set_connection_state(CONNECTION_NOTOK);
+-            char *cb_excep_mess = Tango::Except::print_CORBA_SystemException(&ex);
++            char cb_excep_mess[256];
++            Tango::Except::print_CORBA_SystemException_r(&ex,cb_excep_mess);
+             omni420_except_attr(id,cb_excep_mess,SIMPLE);
+ 
+             DeviceAttribute *a_ptr = redo_synch_read_call(req);
+@@ -1392,7 +1404,7 @@
+ 			nanosleep(&to_wait,&inter);
+ #endif
+ 		}
+-
++	
+ 		if (i == nb)
+ 		{
+ 			TangoSys_OMemStream desc;
+@@ -1419,7 +1431,8 @@
+ 	}
+     catch (CORBA::TRANSIENT &tra)
+     {
+-        char *cb_excep_mess = Tango::Except::print_CORBA_SystemException(&tra);
++        char cb_excep_mess[256];
++        Tango::Except::print_CORBA_SystemException_r(&tra,cb_excep_mess);
+         if (tra.minor() == omni::TRANSIENT_CallTimedout)
+         {
+             omni420_timeout_attr(id,cb_excep_mess,MULTIPLE);
+@@ -1437,7 +1450,8 @@
+     catch(CORBA::SystemException &ex)
+     {
+         set_connection_state(CONNECTION_NOTOK);
+-        char *cb_excep_mess = Tango::Except::print_CORBA_SystemException(&ex);
++        char cb_excep_mess[256];
++        Tango::Except::print_CORBA_SystemException_r(&ex,cb_excep_mess);
+         omni420_except_attr(id,cb_excep_mess,MULTIPLE);
+ 
+ 		vector<DeviceAttribute> *a_ptr = redo_synch_reads_call(req);
+@@ -1648,7 +1662,7 @@
+ 
+ //
+ // Check if the reply is an exception
+-// Due to a compatibility pb between omniORB 4.1 and omniORB 4.1 (at least 4.2.0),
++// Due to a compatibility pb between omniORB 4.1 and omniORB 4.2 (at least 4.2.0),
+ // we have to also handle CORBA::Request instance throwing exception in its env() and
+ // other methods. This was not the case in omniORB 4.1!
+ //
+@@ -1660,7 +1674,8 @@
+ 	}
+     catch (CORBA::TRANSIENT &tra)
+     {
+-        char *cb_excep_mess = Tango::Except::print_CORBA_SystemException(&tra);
++        char cb_excep_mess[256];
++        Tango::Except::print_CORBA_SystemException_r(&tra,cb_excep_mess);
+         if (tra.minor() == omni::TRANSIENT_CallTimedout)
+         {
+             omni420_timeout_attr(id,cb_excep_mess,SIMPLE);
+@@ -1678,7 +1693,8 @@
+     catch(CORBA::SystemException &ex)
+     {
+         set_connection_state(CONNECTION_NOTOK);
+-        char *cb_excep_mess = Tango::Except::print_CORBA_SystemException(&ex);
++        char cb_excep_mess[256];
++        Tango::Except::print_CORBA_SystemException_r(&ex,cb_excep_mess);
+         omni420_except_attr(id,cb_excep_mess,SIMPLE);
+ 
+ 		DeviceAttribute *a_ptr = redo_synch_read_call(req);
+@@ -1831,7 +1847,8 @@
+                 catch(...) {}
+             }
+ 
+-			char *cb_excep_mess = Tango::Except::print_CORBA_SystemException(tra);
++            char cb_excep_mess[256];
++            Tango::Except::print_CORBA_SystemException_r(tra,cb_excep_mess);
+ 
+             string meth;
+             if (type == SIMPLE)
+@@ -1930,7 +1947,8 @@
+ 		CORBA::NamedValue_ptr nv = req_arg->item(0);
+ 		*(nv->value()) >>= names;
+ 
+-		char *cb_excep_mess = Tango::Except::print_CORBA_SystemException(sys_ex);
++		char cb_excep_mess[256];
++		Tango::Except::print_CORBA_SystemException_r(sys_ex,cb_excep_mess);
+ 
+ //
+ // Check if the exception was a connection exception
+@@ -2271,7 +2289,8 @@
+ 	}
+     catch (CORBA::TRANSIENT &tra)
+     {
+-        char *cb_excep_mess = Tango::Except::print_CORBA_SystemException(&tra);
++        char cb_excep_mess[256];
++        Tango::Except::print_CORBA_SystemException_r(&tra,cb_excep_mess);
+         if (tra.minor() == omni::TRANSIENT_CallTimedout)
+         {
+             omni420_timeout_wattr(id,cb_excep_mess);
+@@ -2286,7 +2305,8 @@
+     catch(CORBA::SystemException &ex)
+     {
+         set_connection_state(CONNECTION_NOTOK);
+-        char *cb_excep_mess = Tango::Except::print_CORBA_SystemException(&ex);
++        char cb_excep_mess[256];
++        Tango::Except::print_CORBA_SystemException_r(&ex,cb_excep_mess);
+         omni420_except_wattr(id,cb_excep_mess);
+         redo_synch_write_call(req);
+     }
+@@ -2374,7 +2394,8 @@
+ 		}
+         catch (CORBA::TRANSIENT &tra)
+         {
+-            char *cb_excep_mess = Tango::Except::print_CORBA_SystemException(&tra);
++            char cb_excep_mess[256];
++            Tango::Except::print_CORBA_SystemException_r(&tra,cb_excep_mess);
+             if (tra.minor() == omni::TRANSIENT_CallTimedout)
+             {
+                 omni420_timeout_wattr(id,cb_excep_mess);
+@@ -2389,7 +2410,8 @@
+         catch(CORBA::SystemException &ex)
+         {
+             set_connection_state(CONNECTION_NOTOK);
+-            char *cb_excep_mess = Tango::Except::print_CORBA_SystemException(&ex);
++            char cb_excep_mess[256];
++            Tango::Except::print_CORBA_SystemException_r(&ex,cb_excep_mess);
+             omni420_except_wattr(id,cb_excep_mess);
+ 			redo_synch_write_call(req);
+         }
+@@ -2463,7 +2485,8 @@
+                 catch(...) {}
+             }
+ 
+-			char *cb_excep_mess = Tango::Except::print_CORBA_SystemException(tra);
++            char cb_excep_mess[256];
++            Tango::Except::print_CORBA_SystemException_r(tra,cb_excep_mess);
+ 
+             if (need_reconnect == false)
+             {
+@@ -2646,7 +2669,8 @@
+ 				nb_att = att_4->length();
+ 		}
+ 
+-		char *cb_excep_mess = Tango::Except::print_CORBA_SystemException(sys_ex);
++		char cb_excep_mess[256];
++		Tango::Except::print_CORBA_SystemException_r(sys_ex,cb_excep_mess);
+ 
+ //
+ // Check if the exception was a connection exception
+@@ -2729,7 +2753,8 @@
+ 	}
+ 	catch (CORBA::SystemException &e)
+ 	{
+-		char *cb_excep_mess = Tango::Except::print_CORBA_SystemException(&e);
++		char cb_excep_mess[256];
++		Tango::Except::print_CORBA_SystemException_r(&e,cb_excep_mess);
+ 
+ 		TangoSys_OMemStream desc;
+ 		desc << "Failed to redo the call synchronously on device " << device_name;
+@@ -2839,7 +2864,8 @@
+ 	}
+ 	catch (CORBA::SystemException &e)
+ 	{
+-		char *cb_excep_mess = Tango::Except::print_CORBA_SystemException(&e);
++		char cb_excep_mess[256];
++		Tango::Except::print_CORBA_SystemException_r(&e,cb_excep_mess);
+ 
+ 		TangoSys_OMemStream desc;
+ 		desc << "Failed to redo the call synchronously on device " << device_name << ends;
+@@ -2885,7 +2911,8 @@
+ 	}
+ 	catch (CORBA::SystemException &e)
+ 	{
+-		char *cb_excep_mess = Tango::Except::print_CORBA_SystemException(&e);
++		char cb_excep_mess[256];
++		Tango::Except::print_CORBA_SystemException_r(&e,cb_excep_mess);
+ 
+ 		TangoSys_OMemStream desc;
+ 		desc << "Failed to redo the call synchronously on device " << dev_name() << ends;
+Index: lib/cpp/client/proxy_asyn_cb.cpp
+===================================================================
+--- tango_922/lib/cpp/client/proxy_asyn_cb.cpp	(revision 29537)
++++ tango_922/lib/cpp/client/proxy_asyn_cb.cpp	(revision 29627)
+@@ -324,7 +324,8 @@
+ 			{
+ 				to_except = true;
+ 				char *tmp = CORBA::string_dup(cmd);
+-				char *cb_excep_mess = Tango::Except::print_CORBA_SystemException(tra);
++				char cb_excep_mess[256];
++				Tango::Except::print_CORBA_SystemException_r(tra,cb_excep_mess);
+ 
+ 				TangoSys_OMemStream desc;
+ 				desc << "Timeout (" << timeout << " mS) exceeded on device " << dev_name();
+@@ -386,7 +387,8 @@
+ 
+ 			char *tmp = CORBA::string_dup(cmd);
+ 
+-			char *cb_excep_mess = Tango::Except::print_CORBA_SystemException(sys_ex);
++			char cb_excep_mess[256];
++			Tango::Except::print_CORBA_SystemException_r(sys_ex,cb_excep_mess);
+ 
+ 			TangoSys_OMemStream desc;
+ 			desc << "Failed to execute command_inout_asynch on device " << dev_name();
+@@ -559,7 +561,8 @@
+ 			if (tra->minor() == omni::TRANSIENT_CallTimedout)
+ 			{
+ 				to_except = true;
+-				char *cb_excep_mess = Tango::Except::print_CORBA_SystemException(tra);
++				char cb_excep_mess[256];
++				Tango::Except::print_CORBA_SystemException_r(tra,cb_excep_mess);
+ 
+ 				TangoSys_OMemStream desc;
+ 				desc << "Timeout (" << timeout << " mS) exceeded on device " << dev_name();
+@@ -629,7 +632,8 @@
+ // Re-throw all CORBA system exceptions
+ //
+ 
+-			char *cb_excep_mess = Tango::Except::print_CORBA_SystemException(sys_ex);
++			char cb_excep_mess[256];
++			Tango::Except::print_CORBA_SystemException_r(sys_ex,cb_excep_mess);
+ 
+ 			TangoSys_OMemStream desc;
+ 			desc << "Failed to execute read_attributes_asynch on device " << dev_name();
+@@ -731,7 +735,8 @@
+ 			if (tra->minor() == omni::TRANSIENT_CallTimedout)
+ 			{
+ 				to_except = true;
+-				char *cb_excep_mess = Tango::Except::print_CORBA_SystemException(tra);
++				char cb_excep_mess[256];
++				Tango::Except::print_CORBA_SystemException_r(tra,cb_excep_mess);
+ 
+ 				TangoSys_OMemStream desc;
+ 				desc << "Timeout (" << timeout << " mS) exceeded on device " << dev_name();
+@@ -856,7 +861,8 @@
+ // Re-throw all CORBA system exceptions
+ //
+ 
+-			char *cb_excep_mess = Tango::Except::print_CORBA_SystemException(sys_ex);
++			char cb_excep_mess[256];
++			Tango::Except::print_CORBA_SystemException_r(sys_ex,cb_excep_mess);
+ 
+ 			TangoSys_OMemStream desc;
+ 			desc << "Failed to execute write_attributes_asynch on device " << dev_name();
+Index: lib/cpp/client/cbthread.h
+===================================================================
+--- tango_922/lib/cpp/client/cbthread.h	(revision 29537)
++++ tango_922/lib/cpp/client/cbthread.h	(revision 29627)
+@@ -46,9 +46,9 @@
+ {
+ public:
+ 	CbThreadCmd():stop(false) {};
+-	void stop_thread() {omni_mutex_lock(*this);stop=true;}
+-	void start_thread() {omni_mutex_lock(*this);stop=false;}
+-	bool is_stopped() {omni_mutex_lock(*this);return stop;}
++	void stop_thread() {omni_mutex_lock sync(*this);stop=true;}
++	void start_thread() {omni_mutex_lock sync(*this);stop=false;}
++	bool is_stopped() {omni_mutex_lock sync(*this);return stop;}
+ 
+ 	bool stop;
+ };
+Index: lib/cpp/client/zmqeventconsumer.cpp
+===================================================================
+--- tango_922/lib/cpp/client/zmqeventconsumer.cpp	(revision 29537)
++++ tango_922/lib/cpp/client/zmqeventconsumer.cpp	(revision 29627)
+@@ -1949,7 +1949,7 @@
+ {
+     map_modification_lock.readerIn();
+     bool map_lock = true;
+-//	cout << "Lib: Received event for " << ev_name << endl;
++//  cout << "Lib: Received event for " << ev_name << endl;
+ 
+ //	for (const auto &elem : event_callback_map)
+ //		printf("Key in event_callback_map = %s\n",elem.first.c_str());
+Index: lib/cpp/client/devapi_base.cpp
+===================================================================
+--- tango_922/lib/cpp/client/devapi_base.cpp	(revision 29537)
++++ tango_922/lib/cpp/client/devapi_base.cpp	(revision 29627)
+@@ -2242,7 +2242,9 @@
+                 if (alias_used == true)
+                 {
+                     ext_proxy->nethost_alias = true;
+-                    ext_proxy->orig_tango_host = safe_tmp_host + fq;
++                    ext_proxy->orig_tango_host = safe_tmp_host;
++                    if (safe_tmp_host.find('.') == string::npos)
++                        ext_proxy->orig_tango_host = ext_proxy->orig_tango_host + fq;
+                 }
+                 else
+                     ext_proxy->nethost_alias = false;
+Index: lib/cpp/client/eventkeepalive.cpp
+===================================================================
+--- tango_922/lib/cpp/client/eventkeepalive.cpp	(revision 29537)
++++ tango_922/lib/cpp/client/eventkeepalive.cpp	(revision 29627)
+@@ -191,7 +191,14 @@
+ 					string adm_name = ipos->second.full_adm_name;
+ 
+ #ifdef ZMQ_HAS_DISCONNECT
+-					event_consumer->disconnect_event_channel(adm_name,ipos->second.endpoint,epos->second.endpoint);
++//
++// Forget exception which could happen during massive restart of device server process running on the same host
++//
++                    try
++                    {
++                        event_consumer->disconnect_event_channel(adm_name,ipos->second.endpoint,epos->second.endpoint);
++                    }
++                    catch (Tango::DevFailed &e) {}
+ #endif
+ 					event_consumer->connect_event_channel(adm_name,
+ 									      epos->second.device->get_device_db(),
+@@ -560,18 +567,23 @@
+         if (notifd_event_consumer == NULL)
+             notifd_event_consumer = ApiUtil::instance()->get_notifd_event_consumer();
+ 
+-		// lock the maps only for reading
+-		event_consumer->map_modification_lock.writerIn();
+ 		now = time(NULL);
++		if ( event_consumer->event_not_connected.empty() == false)
++        {
++            DelayEvent de(event_consumer);
++            event_consumer->map_modification_lock.writerIn();
+ 
++
+ //
+ // Check the list of not yet connected events and try to subscribe
+ //
+ 
+-		not_conected_event(event_consumer,now,notifd_event_consumer);
++            not_conected_event(event_consumer,now,notifd_event_consumer);
+ 
+-		event_consumer->map_modification_lock.writerOut();
++            event_consumer->map_modification_lock.writerOut();
++        }
+ 
++
+ //
+ // Check for all other event reconnections
+ //
+Index: lib/cpp/client/devasyn.h
+===================================================================
+--- tango_922/lib/cpp/client/devasyn.h	(revision 29537)
++++ tango_922/lib/cpp/client/devasyn.h	(revision 29627)
+@@ -348,7 +348,7 @@
+ class UniqIdent: public omni_mutex
+ {
+ public:
+-	UniqIdent() {omni_mutex_lock(*this);ctr = 0;}
++	UniqIdent() {omni_mutex_lock sync(*this);ctr = 0;}
+ 	long get_ident() {omni_mutex_lock sync(*this);return ++ctr;}
+ 
+ 	long ctr;
+@@ -400,8 +400,8 @@
+ 	void remove_request(long);
+ 	void remove_request(Connection *,CORBA::Request_ptr);
+ 
+-	size_t get_request_nb() {omni_mutex_lock(*this);return asyn_poll_req_table.size();}
+-	size_t get_cb_request_nb() {omni_mutex_lock(*this);return cb_req_table.size();}
++	size_t get_request_nb() {omni_mutex_lock sync(*this);return asyn_poll_req_table.size();}
++	size_t get_cb_request_nb() {omni_mutex_lock sync(*this);return cb_req_table.size();}
+ 	size_t get_cb_request_nb_i() {return cb_req_table.size();}
+ 
+ 	void mark_as_arrived(CORBA::Request_ptr req);
+@@ -410,7 +410,7 @@
+ 	void mark_as_cancelled(long);
+ 	void mark_all_polling_as_cancelled();
+ 	void wait() {cond.wait();}
+-	void signal() {omni_mutex_lock(*this);cond.signal();}
++	void signal() {omni_mutex_lock sync(*this);cond.signal();}
+ 
+ protected:
+ 	map<long,TgRequest>			asyn_poll_req_table;
+Index: lib/cpp/client/asynreq.cpp
+===================================================================
+--- tango_922/lib/cpp/client/asynreq.cpp	(revision 29537)
++++ tango_922/lib/cpp/client/asynreq.cpp	(revision 29627)
+@@ -376,7 +376,7 @@
+ 
+ void AsynReq::mark_as_cancelled(long req_id)
+ {
+-	omni_mutex_lock(*this);
++	omni_mutex_lock sync(*this);
+ 	map<long,TgRequest>::iterator pos;
+ 
+ 	pos = asyn_poll_req_table.find(req_id);

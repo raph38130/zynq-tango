@@ -1,0 +1,4 @@
+insmod /lib/modules/4.0.0-adi/kernel/drivers/virtio/virtio.ko
+insmod /lib/modules/4.0.0-adi/kernel/drivers/virtio/virtio_ring.ko
+insmod /lib/modules/4.0.0-adi/kernel/drivers/remoteproc/remoteproc.ko
+insmod /lib/modules/4.0.0-adi/kernel/drivers/remoteproc/zynq_remoteproc.ko

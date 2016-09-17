@@ -1,0 +1,26 @@
+DESCRIPTION = "tango control system"
+LICENSE = "GPLv3 | LGPLv3"
+LIC_FILES_CHKSUM = " \
+		 file://COPYING;md5=d32239bcb673463ab874e80d47fae504 \
+		 file://COPYING.LESSER;md5=6a6a8e020838b23406c81b19c1d46df6 \
+"
+REQUIRES += "zeromq omniorb4"
+SRC_URI = "http://downloads.sourceforge.net/project/tango-cs/Previous_Releases/tango-8.1.2c.tar.gz \
+file://p812_1.diff;patch=1 \
+file://p812_2.diff;patch=1 \
+file://p812_3.diff;patch=1 \
+file://p812_4.diff;patch=1 "
+SRC_URI[md5sum] = "3dbcc2cf34f8c9395ee72f4ee5ae05dc"
+SRC_URI[sha256sum] = "0149e797e5745b1dd8d5d39260889b6da31c84c75c272372255ae8ca3507a116"
+
+EXTRA_OECONF_append += "PATH=${PATH}:${STAGING_BINDIR_NATIVE}/arm-poky-linux-gnueabi/  \
+--disable-dbserver \
+'--with-zlib=${STAGING_DIR}' \
+'OMNI_ROOT=${STAGING_DIR}/../work/armv7a-vfp-neon-poky-linux-gnueabi/omniorb4/4.1.7-r2/package/usr/' \
+'ZMQ_ROOT=${STAGING_DIR}/../work/armv7a-vfp-neon-poky-linux-gnueabi/zeromq/3.2.5-r0/package/usr/' \
+"
+inherit autotools pkgconfig 
+
+
+#libtool aclocal.m4
+

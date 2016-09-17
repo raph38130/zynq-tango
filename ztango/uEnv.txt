@@ -1,0 +1,8 @@
+bootcmd=\
+setenv fdt_high 0x1fe00000 ;            \
+fatload mmc 0   0x19500000 my.dtb ;     \
+fatload mmc 0   0x19600000 uImage.bin ; \
+bootm           0x19600000 - 0x19500000
+uenvcmd=boot
+
+

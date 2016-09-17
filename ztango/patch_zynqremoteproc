@@ -1,0 +1,74 @@
+38c38
+< extern int zynq_cpun_start(u32 address, int cpu);
+---
+> extern int __cpuinit zynq_cpun_start(u32 address, int cpu);
+56a57,60
+> 
+> //rp Need my own workqueue rather than a shared work queue because I will block for completion
+>  struct workqueue_struct* wq;
+>  struct work_struct boot_work;
+58a63,76
+> static void boot_cpu1(struct work_struct *work) {
+>  struct zynq_rproc_pdata* local =
+>    container_of(work, struct zynq_rproc_pdata, boot_work);
+>  struct rproc* rproc = local->rproc;
+>  int err;
+> 
+>  wait_for_completion(&rproc->firmware_loading_complete);
+>  dev_info(&rproc->dev, "firmware_loading_complete\n");
+>  err = rproc_boot(rproc);
+>  if(err)
+>   dev_err(&rproc->dev, "rproc_boot %d\n", err);
+> }
+> 
+> 
+80a99
+> 	struct zynq_rproc_pdata *local = platform_get_drvdata(pdev);
+109a129,156
+> 
+> 
+> 
+> 
+> ssize_t up_store(struct device *dev, struct device_attribute *attr,
+>   const char *buf, size_t count) {
+>  struct rproc *rproc = container_of(dev, struct rproc, dev);
+>  //struct platform_device *pdev = to_platform_device(dev);
+>  //struct zynq_rproc_pdata *local = platform_get_drvdata(pdev);
+>  if(buf[0] == '0') { //want to shut down
+>   rproc_shutdown(rproc);
+>  } else { // bring up
+>   rproc_boot(rproc);
+>  }
+>  return count;
+> }
+> static ssize_t up_show(struct device *dev,
+>        struct device_attribute *attr, char *buf) {
+>  struct rproc *rproc = container_of(dev, struct rproc, dev);
+>  return sprintf(buf, "%d\n", rproc->state);
+> }
+> static DEVICE_ATTR_RW(up);
+> 
+> 
+> 
+> 
+> 
+> 
+296a344,353
+> INIT_WORK(&local->boot_work, boot_cpu1);
+>   local->wq = create_singlethread_workqueue("znq_remoteproc boot");
+>   if(IS_ERR(local->wq)) {
+>    dev_err(&pdev->dev, "create_singlethread_workqueue %ld\n",
+>      PTR_ERR(local->wq));
+>    goto rproc_fault;
+>   }
+>   queue_work(local->wq, &local->boot_work);
+> 
+> 
+297a355,357
+> 
+>    		//rp
+> 		ret = device_create_file(&local->rproc->dev, &dev_attr_up);
+341c401
+< 
+---
+>   destroy_workqueue(local->wq);

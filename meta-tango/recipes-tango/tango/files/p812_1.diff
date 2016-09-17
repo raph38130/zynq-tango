@@ -1,0 +1,52 @@
+diff -Naur '--exclude=.svn' tango_812c/lib/cpp/server/eventcmds.cpp tango_812c.p1/lib/cpp/server/eventcmds.cpp
+--- tango_812c/lib/cpp/server/eventcmds.cpp	2013-08-22 13:47:46.174744851 +0200
++++ tango_812c.p1/lib/cpp/server/eventcmds.cpp	2013-09-03 09:46:00.072786161 +0200
+@@ -539,8 +539,8 @@
+ 								(const char *)"DServer::zmq_event_subscription_change");
+     }
+ 
+-    Tango::DevVarLongStringArray *ret_data = new Tango::DevVarLongStringArray();
+     Tango::Util *tg = Tango::Util::instance();
++	Tango::DevVarLongStringArray *ret_data;
+ 
+     if (argin->length() == 1)
+     {
+@@ -561,6 +561,7 @@
+ // It's just the call to help debugging. Returns event configuration
+ //
+ 
++		ret_data = new Tango::DevVarLongStringArray();
+         ret_data->svalue.length(2);
+ 
+         ZmqEventSupplier *ev;
+@@ -735,6 +736,7 @@
+ // Init data returned by command
+ //
+ 
++		ret_data = new Tango::DevVarLongStringArray();
+         ret_data->lvalue.length(6);
+         ret_data->svalue.length(2);
+ 
+diff -Naur '--exclude=.svn' tango_812c/lib/cpp/server/pollthread.cpp tango_812c.p1/lib/cpp/server/pollthread.cpp
+--- tango_812c/lib/cpp/server/pollthread.cpp	2013-08-22 13:47:46.166744807 +0200
++++ tango_812c.p1/lib/cpp/server/pollthread.cpp	2013-09-03 09:46:54.953034725 +0200
+@@ -1038,11 +1038,17 @@
+ 			WorkItem wo = *ite;
+ 			Tango::DevULong64 next_work = ((Tango::DevULong64)wo.wake_up_date.tv_sec * 1000000LL) + (Tango::DevULong64)wo.wake_up_date.tv_usec;
+ 
++			Tango::DevULong64 next_prev;
+ 			if (next_work < next_tuning)
+ 			{
+ 				Tango::DevULong64 prev_obj_work = ((Tango::DevULong64)ite_prev->wake_up_date.tv_sec * 1000000LL) + (Tango::DevULong64)ite_prev->wake_up_date.tv_usec;
+-				Tango::DevULong64 n = (next_work - prev_obj_work) / ((Tango::DevULong64)ite_prev->update * 1000LL);
+-				Tango::DevULong64 next_prev = prev_obj_work + (n * (ite_prev->update * 1000LL));
++				if (next_work > prev_obj_work)
++				{
++					Tango::DevULong64 n = (next_work - prev_obj_work) / ((Tango::DevULong64)ite_prev->update * 1000LL);
++					next_prev = prev_obj_work + (n * (ite_prev->update * 1000LL));
++				}
++				else
++					next_prev = prev_obj_work;
+ 
+ 				wo.wake_up_date.tv_sec = (long)(next_prev / 1000000LL);
+ 				wo.wake_up_date.tv_usec = (long)(next_prev % 1000000LL);
