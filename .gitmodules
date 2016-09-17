@@ -7,3 +7,6 @@
 [submodule "meta-xilinx"]
 	path = meta-xilinx
 	url = https://github.com/Xilinx/meta-xilinx.git
+[submodule "openembedded-core"]
+	path = openembedded-core
+	url = git://git.openembedded.org/openembedded-core
