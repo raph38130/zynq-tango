@@ -10,3 +10,6 @@
 [submodule "openembedded-core"]
 	path = openembedded-core
 	url = git://git.openembedded.org/openembedded-core
+[submodule "oe"]
+	path = oe
+	url = git://git.openembedded.org/openembedded-core
