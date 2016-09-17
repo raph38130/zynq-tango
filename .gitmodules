@@ -1,3 +1,6 @@
 [submodule "meta-openembedded"]
 	path = meta-openembedded
 	url = git://git.openembedded.org/meta-openembedded
+[submodule "device-tree-xlnx"]
+	path = device-tree-xlnx
+	url = git://github.com/Xilinx/device-tree-xlnx.git
