@@ -1,8 +1,17 @@
-Tango distributed control system on Zynq SoC
+Implementing Tango distributed control system on Zynq SoC
 an open source, object oriented distributed control system
 
 
 see www.tango-controls.org
 and www.esrf.eu
+
+based upon OpenEmbedded/poky layers
+
+custom bitbake recipes featuring :
+
+
+omniorb 4.2.1
+tango 9.2.2
+and some DeviceServer samples : TangoAmperemeter, GpioZed
 
 
