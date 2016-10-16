@@ -131,8 +131,8 @@ ZedGPIOClass *ZedGPIOClass::init(const char *name)
 		catch (bad_alloc &)
 		{
 			throw;
-		}		
-	}		
+		}
+	}
 	return _instance;
 }
 
@@ -684,6 +684,31 @@ void ZedGPIOClass::attribute_factory(vector<Tango::Attr *> &att_list)
 	//	Not Memorized
 	att_list.push_back(led7);
 
+	//	Attribute : Leds
+	LedsAttrib	*leds = new LedsAttrib();
+	Tango::UserDefaultAttrProp	leds_prop;
+	//	description	not set for Leds
+	//	label	not set for Leds
+	//	unit	not set for Leds
+	//	standard_unit	not set for Leds
+	//	display_unit	not set for Leds
+	//	format	not set for Leds
+	//	max_value	not set for Leds
+	//	min_value	not set for Leds
+	//	max_alarm	not set for Leds
+	//	min_alarm	not set for Leds
+	//	max_warning	not set for Leds
+	//	min_warning	not set for Leds
+	//	delta_t	not set for Leds
+	//	delta_val	not set for Leds
+	
+	leds->set_default_properties(leds_prop);
+	//	Not Polled
+	leds->set_disp_level(Tango::OPERATOR);
+	//	Not Memorized
+	att_list.push_back(leds);
+
+
 	//	Create a list of static attributes
 	create_static_attribute_list(get_class_attr()->get_attr_list());
 	/*----- PROTECTED REGION ID(ZedGPIOClass::attribute_factory_after) ENABLED START -----*/
@@ -691,6 +716,26 @@ void ZedGPIOClass::attribute_factory(vector<Tango::Attr *> &att_list)
 	//	Add your own code
 	
 	/*----- PROTECTED REGION END -----*/	//	ZedGPIOClass::attribute_factory_after
+}
+//--------------------------------------------------------
+/**
+ *	Method      : ZedGPIOClass::pipe_factory()
+ *	Description : Create the pipe object(s)
+ *                and store them in the pipe list
+ */
+//--------------------------------------------------------
+void ZedGPIOClass::pipe_factory()
+{
+	/*----- PROTECTED REGION ID(ZedGPIOClass::pipe_factory_before) ENABLED START -----*/
+	
+	//	Add your own code
+	
+	/*----- PROTECTED REGION END -----*/	//	ZedGPIOClass::pipe_factory_before
+	/*----- PROTECTED REGION ID(ZedGPIOClass::pipe_factory_after) ENABLED START -----*/
+	
+	//	Add your own code
+	
+	/*----- PROTECTED REGION END -----*/	//	ZedGPIOClass::pipe_factory_after
 }
 //--------------------------------------------------------
 /**
@@ -742,7 +787,7 @@ void ZedGPIOClass::command_factory()
  * method : 		ZedGPIOClass::create_static_attribute_list
  * description : 	Create the a list of static attributes
  *
- * @param	att_list	the ceated attribute list 
+ * @param	att_list	the ceated attribute list
  */
 //--------------------------------------------------------
 void ZedGPIOClass::create_static_attribute_list(vector<Tango::Attr *> &att_list)
@@ -776,10 +821,10 @@ void ZedGPIOClass::erase_dynamic_attributes(const Tango::DevVarStringArray *devl
 	Tango::Util *tg = Tango::Util::instance();
 
 	for (unsigned long i=0 ; i<devlist_ptr->length() ; i++)
-	{	
+	{
 		Tango::DeviceImpl *dev_impl = tg->get_device_by_name(((string)(*devlist_ptr)[i]).c_str());
 		ZedGPIO *dev = static_cast<ZedGPIO *> (dev_impl);
-		
+
 		vector<Tango::Attribute *> &dev_att_list = dev->get_device_attr()->get_attribute_list();
 		vector<Tango::Attribute *>::iterator ite_att;
 		for (ite_att=dev_att_list.begin() ; ite_att != dev_att_list.end() ; ++ite_att)
@@ -811,7 +856,7 @@ void ZedGPIOClass::erase_dynamic_attributes(const Tango::DevVarStringArray *devl
 Tango::Attr *ZedGPIOClass::get_attr_object_by_name(vector<Tango::Attr *> &att_list, string attname)
 {
 	vector<Tango::Attr *>::iterator it;
-	for (it=att_list.begin() ; it<att_list.end() ; it++)
+	for (it=att_list.begin() ; it<att_list.end() ; ++it)
 		if ((*it)->get_name()==attname)
 			return (*it);
 	//	Attr does not exist

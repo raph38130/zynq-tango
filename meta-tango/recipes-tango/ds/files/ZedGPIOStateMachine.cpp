@@ -277,6 +277,23 @@ bool ZedGPIO::is_Led7_allowed(TANGO_UNUSED(Tango::AttReqType type))
 	return true;
 }
 
+//--------------------------------------------------------
+/**
+ *	Method      : ZedGPIO::is_Leds_allowed()
+ *	Description : Execution allowed for Leds attribute
+ */
+//--------------------------------------------------------
+bool ZedGPIO::is_Leds_allowed(TANGO_UNUSED(Tango::AttReqType type))
+{
+	//	Not any excluded states for Leds attribute in Write access.
+	/*----- PROTECTED REGION ID(ZedGPIO::LedsStateAllowed_WRITE) ENABLED START -----*/
+	
+	/*----- PROTECTED REGION END -----*/	//	ZedGPIO::LedsStateAllowed_WRITE
+
+	return true;
+}
+
+
 //=================================================
 //		Commands Allowed Methods
 //=================================================
@@ -318,5 +335,12 @@ bool ZedGPIO::is_Stop_allowed(TANGO_UNUSED(const CORBA::Any &any))
 	}
 	return true;
 }
+
+
+/*----- PROTECTED REGION ID(ZedGPIO::ZedGPIOStateAllowed.AdditionalMethods) ENABLED START -----*/
+
+//	Additional Methods
+
+/*----- PROTECTED REGION END -----*/	//	ZedGPIO::ZedGPIOStateAllowed.AdditionalMethods
 
 }	//	End of namespace

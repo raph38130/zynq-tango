@@ -76,6 +76,7 @@ static const char *RcsId = "$Id:  $";
 //  Led5      |  Tango::DevBoolean	Scalar
 //  Led6      |  Tango::DevBoolean	Scalar
 //  Led7      |  Tango::DevBoolean	Scalar
+//  Leds      |  Tango::DevUChar	Scalar
 //================================================================
 
 namespace ZedGPIO_ns
@@ -154,7 +155,7 @@ void ZedGPIO::delete_device()
 //--------------------------------------------------------
 void ZedGPIO::init_device()
 {
-	DEBUG_STREAM << "ZedGPIO::init_device() create device, should be TANGO VERSION 9 !!! " << device_name << endl;
+	DEBUG_STREAM << "ZedGPIO::init_device() create device " << device_name << endl;
 	/*----- PROTECTED REGION ID(ZedGPIO::init_device_before) ENABLED START -----*/
 	
 	//	Initialization before get_device_property() call
@@ -171,6 +172,7 @@ void ZedGPIO::init_device()
     	for (int i=0; i<8; i++)
 	    {
 	    int exp = open("/sys/class/gpio/export", O_WRONLY);
+	    //why 1016
 	    sprintf(buffer, "%d", 1016+i);
 	    write(exp, buffer, 4);
 	    close(exp);
@@ -434,6 +436,26 @@ void ZedGPIO::write_Led7(Tango::WAttribute &attr)
 	write_zed_leds(7, ((int) w_val));
 	/*----- PROTECTED REGION END -----*/	//	ZedGPIO::write_Led7
 }
+//--------------------------------------------------------
+/**
+ *	Write attribute Leds related method
+ *	Description: 
+ *
+ *	Data type:	Tango::DevUChar
+ *	Attr type:	Scalar
+ */
+//--------------------------------------------------------
+void ZedGPIO::write_Leds(Tango::WAttribute &attr)
+{
+	DEBUG_STREAM << "ZedGPIO::write_Leds(Tango::WAttribute &attr) entering... " << endl;
+	//	Retrieve write value
+	Tango::DevUChar	w_val;
+	attr.get_write_value(w_val);
+	/*----- PROTECTED REGION ID(ZedGPIO::write_Leds) ENABLED START -----*/
+	
+	
+	/*----- PROTECTED REGION END -----*/	//	ZedGPIO::write_Leds
+}
 
 //--------------------------------------------------------
 /**
@@ -482,6 +504,21 @@ void ZedGPIO::stop()
 	//	Add your own code
 	set_state(Tango::OFF);
 	/*----- PROTECTED REGION END -----*/	//	ZedGPIO::stop
+}
+//--------------------------------------------------------
+/**
+ *	Method      : ZedGPIO::add_dynamic_commands()
+ *	Description : Create the dynamic commands if any
+ *                for specified device.
+ */
+//--------------------------------------------------------
+void ZedGPIO::add_dynamic_commands()
+{
+	/*----- PROTECTED REGION ID(ZedGPIO::add_dynamic_commands) ENABLED START -----*/
+	
+	//	Add your own code to create and add dynamic commands if any
+	
+	/*----- PROTECTED REGION END -----*/	//	ZedGPIO::add_dynamic_commands
 }
 
 /*----- PROTECTED REGION ID(ZedGPIO::namespace_ending) ENABLED START -----*/

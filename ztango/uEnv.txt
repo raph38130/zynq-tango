@@ -1,8 +1,7 @@
-bootcmd=\
-setenv fdt_high 0x1fe00000 ;            \
-fatload mmc 0   0x19500000 my.dtb ;     \
-fatload mmc 0   0x19600000 uImage.bin ; \
+setenv fdt_high 0x1fe00000
+boot_sd=\            \
+fatload mmc 0   0x19500000 amp.dtb ;     \
+fatload mmc 0   0x19600000 uImage ; \
 bootm           0x19600000 - 0x19500000
-uenvcmd=boot
-
+uenvcmd=run boot_sd
 

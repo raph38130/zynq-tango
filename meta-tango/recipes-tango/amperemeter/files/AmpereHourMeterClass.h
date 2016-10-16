@@ -72,17 +72,30 @@ public:
 		{return (static_cast<AmpereHourMeter *>(dev))->is_Current_allowed(ty);}
 };
 
-//	Attribute AmperHour class definition
-class AmperHourAttrib: public Tango::Attr
+//	Attribute AmpereHour class definition
+class AmpereHourAttrib: public Tango::Attr
 {
 public:
-	AmperHourAttrib():Attr("AmperHour",
+	AmpereHourAttrib():Attr("AmpereHour",
 			Tango::DEV_DOUBLE, Tango::READ) {};
-	~AmperHourAttrib() {};
+	~AmpereHourAttrib() {};
 	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
-		{(static_cast<AmpereHourMeter *>(dev))->read_AmperHour(att);}
+		{(static_cast<AmpereHourMeter *>(dev))->read_AmpereHour(att);}
 	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
-		{return (static_cast<AmpereHourMeter *>(dev))->is_AmperHour_allowed(ty);}
+		{return (static_cast<AmpereHourMeter *>(dev))->is_AmpereHour_allowed(ty);}
+};
+
+//	Attribute Interlock class definition
+class InterlockAttrib: public Tango::Attr
+{
+public:
+	InterlockAttrib():Attr("Interlock",
+			Tango::DEV_BOOLEAN, Tango::READ) {};
+	~InterlockAttrib() {};
+	virtual void read(Tango::DeviceImpl *dev,Tango::Attribute &att)
+		{(static_cast<AmpereHourMeter *>(dev))->read_Interlock(att);}
+	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
+		{return (static_cast<AmpereHourMeter *>(dev))->is_Interlock_allowed(ty);}
 };
 
 

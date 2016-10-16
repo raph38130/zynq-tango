@@ -1,7 +1,7 @@
 the_ROM_image:
 {
-	[bootloader]/home/raph/TangoAmperemeter/TangoAmperemeter.sdk/fsbl/Debug/fsbl.elf
-	/home/raph/TangoAmperemeter/TangoAmperemeter.sdk/design_1_wrapper_hw_platform_0/design_1_wrapper.bit
+	[bootloader]/home/raph/zed-design/TangoAmperemeter/TangoAmperemeter.sdk/fsbl/Debug/fsbl.elf
+	/home/raph/zed-design/TangoAmperemeter/TangoAmperemeter.sdk/design_1_wrapper_hw_platform_0/design_1_wrapper.bit
 	./tmp-glibc/deploy/images/zedboard-zynq7/u-boot.elf
 
 } 

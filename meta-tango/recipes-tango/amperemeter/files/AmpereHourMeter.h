@@ -70,7 +70,8 @@ class AmpereHourMeter : public TANGO_BASE_CLASS
 //	Attribute data members
 public:
 	Tango::DevDouble	*attr_Current_read;
-	Tango::DevDouble	*attr_AmperHour_read;
+	Tango::DevDouble	*attr_AmpereHour_read;
+	Tango::DevBoolean	*attr_Interlock_read;
 
 //	Constructors and destructors
 public:
@@ -138,14 +139,23 @@ public:
 	virtual void read_Current(Tango::Attribute &attr);
 	virtual bool is_Current_allowed(Tango::AttReqType type);
 /**
- *	Attribute AmperHour related methods
+ *	Attribute AmpereHour related methods
  *	Description: 
  *
  *	Data type:	Tango::DevDouble
  *	Attr type:	Scalar
  */
-	virtual void read_AmperHour(Tango::Attribute &attr);
-	virtual bool is_AmperHour_allowed(Tango::AttReqType type);
+	virtual void read_AmpereHour(Tango::Attribute &attr);
+	virtual bool is_AmpereHour_allowed(Tango::AttReqType type);
+/**
+ *	Attribute Interlock related methods
+ *	Description: 
+ *
+ *	Data type:	Tango::DevBoolean
+ *	Attr type:	Scalar
+ */
+	virtual void read_Interlock(Tango::Attribute &attr);
+	virtual bool is_Interlock_allowed(Tango::AttReqType type);
 
 
 	//--------------------------------------------------------

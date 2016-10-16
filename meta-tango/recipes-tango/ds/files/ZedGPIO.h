@@ -97,7 +97,7 @@ public:
 	ZedGPIO(Tango::DeviceClass *cl,const char *s,const char *d);
 	/**
 	 * The device object destructor.
-	 */	
+	 */
 	~ZedGPIO() {delete_device();};
 
 
@@ -215,6 +215,15 @@ public:
  */
 	virtual void write_Led7(Tango::WAttribute &attr);
 	virtual bool is_Led7_allowed(Tango::AttReqType type);
+/**
+ *	Attribute Leds related methods
+ *	Description: 
+ *
+ *	Data type:	Tango::DevUChar
+ *	Attr type:	Scalar
+ */
+	virtual void write_Leds(Tango::WAttribute &attr);
+	virtual bool is_Leds_allowed(Tango::AttReqType type);
 
 
 	//--------------------------------------------------------
@@ -224,6 +233,7 @@ public:
 	 */
 	//--------------------------------------------------------
 	void add_dynamic_attributes();
+
 
 
 

@@ -79,17 +79,42 @@ bool AmpereHourMeter::is_Current_allowed(TANGO_UNUSED(Tango::AttReqType type))
 
 //--------------------------------------------------------
 /**
- *	Method      : AmpereHourMeter::is_AmperHour_allowed()
- *	Description : Execution allowed for AmperHour attribute
+ *	Method      : AmpereHourMeter::is_AmpereHour_allowed()
+ *	Description : Execution allowed for AmpereHour attribute
  */
 //--------------------------------------------------------
-bool AmpereHourMeter::is_AmperHour_allowed(TANGO_UNUSED(Tango::AttReqType type))
+bool AmpereHourMeter::is_AmpereHour_allowed(TANGO_UNUSED(Tango::AttReqType type))
 {
 
-	//	Not any excluded states for AmperHour attribute in read access.
-	/*----- PROTECTED REGION ID(AmpereHourMeter::AmperHourStateAllowed_READ) ENABLED START -----*/
+	//	Check access type.
+	if ( type==Tango::READ_REQ )
+	{
+		//	Compare device state with not allowed states for READ 
+		if (get_state()==Tango::OFF)
+		{
+		/*----- PROTECTED REGION ID(AmpereHourMeter::AmpereHourStateAllowed_READ) ENABLED START -----*/
+		
+		/*----- PROTECTED REGION END -----*/	//	AmpereHourMeter::AmpereHourStateAllowed_READ
+			return false;
+		}
+		return true;
+	}
+	return true;
+}
+
+//--------------------------------------------------------
+/**
+ *	Method      : AmpereHourMeter::is_Interlock_allowed()
+ *	Description : Execution allowed for Interlock attribute
+ */
+//--------------------------------------------------------
+bool AmpereHourMeter::is_Interlock_allowed(TANGO_UNUSED(Tango::AttReqType type))
+{
+
+	//	Not any excluded states for Interlock attribute in read access.
+	/*----- PROTECTED REGION ID(AmpereHourMeter::InterlockStateAllowed_READ) ENABLED START -----*/
 	
-	/*----- PROTECTED REGION END -----*/	//	AmpereHourMeter::AmperHourStateAllowed_READ
+	/*----- PROTECTED REGION END -----*/	//	AmpereHourMeter::InterlockStateAllowed_READ
 	return true;
 }
 
@@ -144,14 +169,10 @@ bool AmpereHourMeter::is_Off_allowed(TANGO_UNUSED(const CORBA::Any &any))
 //--------------------------------------------------------
 bool AmpereHourMeter::is_Reset_allowed(TANGO_UNUSED(const CORBA::Any &any))
 {
-	//	Compare device state with not allowed states.
-	if (get_state()==Tango::OFF)
-	{
+	//	Not any excluded states for Reset command.
 	/*----- PROTECTED REGION ID(AmpereHourMeter::ResetStateAllowed) ENABLED START -----*/
 	
 	/*----- PROTECTED REGION END -----*/	//	AmpereHourMeter::ResetStateAllowed
-		return false;
-	}
 	return true;
 }
 

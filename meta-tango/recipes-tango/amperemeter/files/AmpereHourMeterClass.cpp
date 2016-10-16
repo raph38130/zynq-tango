@@ -510,29 +510,53 @@ void AmpereHourMeterClass::attribute_factory(vector<Tango::Attr *> &att_list)
 	//	Not Memorized
 	att_list.push_back(current);
 
-	//	Attribute : AmperHour
-	AmperHourAttrib	*amperhour = new AmperHourAttrib();
-	Tango::UserDefaultAttrProp	amperhour_prop;
-	//	description	not set for AmperHour
-	//	label	not set for AmperHour
-	//	unit	not set for AmperHour
-	//	standard_unit	not set for AmperHour
-	//	display_unit	not set for AmperHour
-	//	format	not set for AmperHour
-	//	max_value	not set for AmperHour
-	//	min_value	not set for AmperHour
-	//	max_alarm	not set for AmperHour
-	//	min_alarm	not set for AmperHour
-	//	max_warning	not set for AmperHour
-	//	min_warning	not set for AmperHour
-	//	delta_t	not set for AmperHour
-	//	delta_val	not set for AmperHour
+	//	Attribute : AmpereHour
+	AmpereHourAttrib	*amperehour = new AmpereHourAttrib();
+	Tango::UserDefaultAttrProp	amperehour_prop;
+	//	description	not set for AmpereHour
+	//	label	not set for AmpereHour
+	//	unit	not set for AmpereHour
+	//	standard_unit	not set for AmpereHour
+	//	display_unit	not set for AmpereHour
+	//	format	not set for AmpereHour
+	//	max_value	not set for AmpereHour
+	//	min_value	not set for AmpereHour
+	//	max_alarm	not set for AmpereHour
+	//	min_alarm	not set for AmpereHour
+	//	max_warning	not set for AmpereHour
+	//	min_warning	not set for AmpereHour
+	//	delta_t	not set for AmpereHour
+	//	delta_val	not set for AmpereHour
 	
-	amperhour->set_default_properties(amperhour_prop);
+	amperehour->set_default_properties(amperehour_prop);
 	//	Not Polled
-	amperhour->set_disp_level(Tango::OPERATOR);
+	amperehour->set_disp_level(Tango::OPERATOR);
 	//	Not Memorized
-	att_list.push_back(amperhour);
+	att_list.push_back(amperehour);
+
+	//	Attribute : Interlock
+	InterlockAttrib	*interlock = new InterlockAttrib();
+	Tango::UserDefaultAttrProp	interlock_prop;
+	//	description	not set for Interlock
+	//	label	not set for Interlock
+	//	unit	not set for Interlock
+	//	standard_unit	not set for Interlock
+	//	display_unit	not set for Interlock
+	//	format	not set for Interlock
+	//	max_value	not set for Interlock
+	//	min_value	not set for Interlock
+	//	max_alarm	not set for Interlock
+	//	min_alarm	not set for Interlock
+	//	max_warning	not set for Interlock
+	//	min_warning	not set for Interlock
+	//	delta_t	not set for Interlock
+	//	delta_val	not set for Interlock
+	
+	interlock->set_default_properties(interlock_prop);
+	//	Not Polled
+	interlock->set_disp_level(Tango::OPERATOR);
+	//	Not Memorized
+	att_list.push_back(interlock);
 
 
 	//	Create a list of static attributes

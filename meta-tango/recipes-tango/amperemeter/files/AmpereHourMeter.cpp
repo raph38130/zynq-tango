@@ -71,8 +71,9 @@ static const char *RcsId = "$Id:  $";
 //================================================================
 //  Attributes managed are:
 //================================================================
-//  Current    |  Tango::DevDouble	Scalar
-//  AmperHour  |  Tango::DevDouble	Scalar
+//  Current     |  Tango::DevDouble	Scalar
+//  AmpereHour  |  Tango::DevDouble	Scalar
+//  Interlock   |  Tango::DevBoolean	Scalar
 //================================================================
 
 namespace AmpereHourMeter_ns
@@ -80,7 +81,7 @@ namespace AmpereHourMeter_ns
 /*----- PROTECTED REGION ID(AmpereHourMeter::namespace_starting) ENABLED START -----*/
 
 //	static initializations
-void* ocm = NULL;
+float* ocm = NULL;
 /*----- PROTECTED REGION END -----*/	//	AmpereHourMeter::namespace_starting
 
 //--------------------------------------------------------
@@ -132,7 +133,8 @@ void AmpereHourMeter::delete_device()
 	
 	/*----- PROTECTED REGION END -----*/	//	AmpereHourMeter::delete_device
 	delete[] attr_Current_read;
-	delete[] attr_AmperHour_read;
+	delete[] attr_AmpereHour_read;
+	delete[] attr_Interlock_read;
 }
 
 //--------------------------------------------------------
@@ -153,16 +155,19 @@ void AmpereHourMeter::init_device()
 	//	No device property to be read from database
 	
 	attr_Current_read = new Tango::DevDouble[1];
-	attr_AmperHour_read = new Tango::DevDouble[1];
+	attr_AmpereHour_read = new Tango::DevDouble[1];
+	attr_Interlock_read = new Tango::DevBoolean[1];
 	/*----- PROTECTED REGION ID(AmpereHourMeter::init_device) ENABLED START -----*/
 	
 	//	Initialize device
 	set_state(Tango::OFF);
 
 	int memf = open("/dev/mem", O_RDWR | O_SYNC );
-	if(memf < 0) {printf("mem error\n\r");}
-        ocm = mmap(NULL, 1024, PROT_READ | PROT_WRITE, MAP_SHARED, memf,0xFFFF0000);
-	if(ocm == MAP_FAILED) {printf("mmpa error\n\r"); }
+	if(memf < 0) 
+		DEBUG_STREAM << "mem open error" << endl;
+        ocm = (float*)mmap(NULL, 1024, PROT_READ | PROT_WRITE, MAP_SHARED, memf,0xFFFF0000);
+	if(ocm == MAP_FAILED) 
+		DEBUG_STREAM << "mmap error" << endl;
 	/*----- PROTECTED REGION END -----*/	//	AmpereHourMeter::init_device
 }
 
@@ -213,29 +218,48 @@ void AmpereHourMeter::read_Current(Tango::Attribute &attr)
 	DEBUG_STREAM << "AmpereHourMeter::read_Current(Tango::Attribute &attr) entering... " << endl;
 	/*----- PROTECTED REGION ID(AmpereHourMeter::read_Current) ENABLED START -----*/
 	//	Set the attribute value
-	*attr_Current_read=*((float*)ocm);
+	*attr_Current_read=*ocm;
 	attr.set_value(attr_Current_read);
 	
 	/*----- PROTECTED REGION END -----*/	//	AmpereHourMeter::read_Current
 }
 //--------------------------------------------------------
 /**
- *	Read attribute AmperHour related method
+ *	Read attribute AmpereHour related method
  *	Description: 
  *
  *	Data type:	Tango::DevDouble
  *	Attr type:	Scalar
  */
 //--------------------------------------------------------
-void AmpereHourMeter::read_AmperHour(Tango::Attribute &attr)
+void AmpereHourMeter::read_AmpereHour(Tango::Attribute &attr)
 {
-	DEBUG_STREAM << "AmpereHourMeter::read_AmperHour(Tango::Attribute &attr) entering... " << endl;
-	/*----- PROTECTED REGION ID(AmpereHourMeter::read_AmperHour) ENABLED START -----*/
+	DEBUG_STREAM << "AmpereHourMeter::read_AmpereHour(Tango::Attribute &attr) entering... " << endl;
+	/*----- PROTECTED REGION ID(AmpereHourMeter::read_AmpereHour) ENABLED START -----*/
 	//	Set the attribute value
-	*attr_AmperHour_read=*(((float*)ocm)+1);
-	attr.set_value(attr_AmperHour_read);
+	*attr_AmpereHour_read=*(ocm+1);
+	attr.set_value(attr_AmpereHour_read);
 	
-	/*----- PROTECTED REGION END -----*/	//	AmpereHourMeter::read_AmperHour
+	/*----- PROTECTED REGION END -----*/	//	AmpereHourMeter::read_AmpereHour
+}
+//--------------------------------------------------------
+/**
+ *	Read attribute Interlock related method
+ *	Description: 
+ *
+ *	Data type:	Tango::DevBoolean
+ *	Attr type:	Scalar
+ */
+//--------------------------------------------------------
+void AmpereHourMeter::read_Interlock(Tango::Attribute &attr)
+{
+	DEBUG_STREAM << "AmpereHourMeter::read_Interlock(Tango::Attribute &attr) entering... " << endl;
+	/*----- PROTECTED REGION ID(AmpereHourMeter::read_Interlock) ENABLED START -----*/
+	//	Set the attribute value
+	*attr_Interlock_read=( *(ocm+2) == 0.0 );
+	attr.set_value(attr_Interlock_read);
+	
+	/*----- PROTECTED REGION END -----*/	//	AmpereHourMeter::read_Interlock
 }
 
 //--------------------------------------------------------
@@ -267,7 +291,9 @@ void AmpereHourMeter::on()
 	/*----- PROTECTED REGION ID(AmpereHourMeter::on) ENABLED START -----*/
 	
 	//	Add your own code
+	system("/home/root/start");
 	set_state(Tango::ON);
+
 	/*----- PROTECTED REGION END -----*/	//	AmpereHourMeter::on
 }
 //--------------------------------------------------------
@@ -283,7 +309,9 @@ void AmpereHourMeter::off()
 	/*----- PROTECTED REGION ID(AmpereHourMeter::off) ENABLED START -----*/
 	
 	//	Add your own code
+	system("/home/root/stop");
 	set_state(Tango::OFF);
+
 	/*----- PROTECTED REGION END -----*/	//	AmpereHourMeter::off
 }
 //--------------------------------------------------------

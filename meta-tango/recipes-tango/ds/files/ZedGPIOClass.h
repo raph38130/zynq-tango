@@ -176,6 +176,19 @@ public:
 		{return (static_cast<ZedGPIO *>(dev))->is_Led7_allowed(ty);}
 };
 
+//	Attribute Leds class definition
+class LedsAttrib: public Tango::Attr
+{
+public:
+	LedsAttrib():Attr("Leds",
+			Tango::DEV_UCHAR, Tango::WRITE) {};
+	~LedsAttrib() {};
+	virtual void write(Tango::DeviceImpl *dev,Tango::WAttribute &att)
+		{(static_cast<ZedGPIO *>(dev))->write_Leds(att);}
+	virtual bool is_allowed(Tango::DeviceImpl *dev,Tango::AttReqType ty)
+		{return (static_cast<ZedGPIO *>(dev))->is_Leds_allowed(ty);}
+};
+
 
 //=========================================
 //	Define classes for commands
@@ -261,6 +274,7 @@ class ZedGPIOClass : public Tango::DeviceClass
 		static ZedGPIOClass *_instance;
 		void command_factory();
 		void attribute_factory(vector<Tango::Attr *> &);
+		void pipe_factory();
 		void write_class_property();
 		void set_default_property();
 		void get_class_property();
